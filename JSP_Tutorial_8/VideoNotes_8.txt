@@ -1,0 +1,1035 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 50 through 60.
+
+Supplimentary Notes: Web.xml and Servlet mapping.
+Video #50: Using External Files: graphics, css, javascript, etc
+Video #51: Re-Usable Fragments Using JSTL <c:import>
+Video #52: SQL Queries with JSTL; create vid_52 database with users table.
+Preparing for videos 53-60: create vid_53 database with images table.
+Video #53: Setting Variables in JSTL <c:set>
+Video #54: Expressions in EL --> <c:if> to make table rows
+Video #55: Creating URLs with JSTL <c:url>
+Video #56: Wildcards and Getting a Single SQL Database row --> <sql:param> and sqlQueryVar.rows[0]
+Video #57: JSTL Functions --> ${fn:functionName(arguments)}
+Video #58: SQL Updates and using SQL Transactions Tag in JSTL
+Video #59: Formatting Using JSTL --> <fmt:>
+Video #60: Custom Tags --> create your own taglib
+
+
+Supplementary Notes: web.xml --> <welcome-file>, <servlet>, <servlet-mapping>
+
+	Also see Video #5's notes.
+				
+			A) 	When the server is given a URL address that isn't specific to a file it will search through the <welcome-file>
+				list to see if the project contains one of the files in the <welcome-file-list> to serve up. It does this from
+				top to bottom.
+			
+			B) This is why if an index.jsp is present a non-specific URL will route to that file.
+				
+			C) 	The web server will also look to see if the argument given to <welcome-file> is mapped to a servlet.
+			D)	For instance, I have a <welcome-file> named "rabbit"; when given a non-specific URL the server will
+				look through the welcome-file-list, finds this "rabbit", determines through the following servlet 
+				mapping:
+				
+					  <servlet>
+					  	<servlet-name>bunny</servlet-name>
+					  	<servlet-class>controller.Video_50_Controller</servlet-class>  
+					  </servlet>
+					  <servlet-mapping>
+					  	<servlet-name>bunny</servlet-name>
+					  	<url-pattern>/rabbit</url-pattern>  
+					  </servlet-mapping>	
+					  
+				that "rabbit" routes to controller.Video_50_Controller.java.
+					  
+			E)	Interestingly, now if the user puts in http://localhost:8080/JSP_Tutorial_8/rabbit they will be taken
+				directly to the Video_50_Controller servlet. The server checks the	<welcome-file-list>, sees "rabbit" 
+				and checks to what "rabbit" is associated, it is associated	with controller.Video_50_Controller so it 
+				invokes that servlet. 		
+					
+	The following is done in video #55 but it is not specific to that video's tutorial goals so I'll put what was done here:
+	
+		A good resource: https://developers.google.com/appengine/docs/java/config/webxml
+		
+		Set a mapping in web.xml for the Video_50_Controller:
+		
+				<welcome-file>rabbit</welcome-file>
+			
+				<servlet>
+					<description>Not terribly important</description>
+					<display-name>NameSeenInConsoleIfError</display-name>
+					<servlet-name>bunny</servlet-name>
+					<servlet-class>controller.Video_50_Controller<servlet-class>			
+				</servlet>
+				
+				<servlet-mapping>
+					<servlet-name>bunny</servlet-name>
+					<url-pattern>/rabbit</url-pattern>
+				</servlet-mapping>	
+		
+		Now, http://localhost:8080/JSP_Tutorial_8/rabbit --> is the address for --> Video_50_Controller.java.
+				
+
+VIDEO #50 Notes:
+
+	Using External Files: Graphics, CSS, Etc.
+	
+	 I created the following for this tutorial:
+	 
+	 	* controller --> a package
+	 	* Video_50_Controller.java --> in controller package
+	 	* styles --> a folder in WebContent
+	 	* images --> a folder in WebContent
+	 	* Video_50_home.jsp --> home page
+	 	
+	 	
+
+	
+	[ ] Video_50_Controller.java		
+		
+		Goal:  If only context root in browser, http://localhost:8080/JSP_Tutorial_8/, --> go to Video_50_home.jsp.
+		
+			See supplemental notes immediately above.
+			
+			I prefer using a landing page (index.jsp).		
+			
+					I *think* index.jsp would be a "landing page", a place for newer users to land, or people
+					to log in. Whereas, a "home page" would be a place for logged in users and people who have
+					bookmarked your site would go? Not sure, probably semantics, a little of this, a little of that.
+		
+		
+	[ ] Video_50_home.jsp
+	
+		link the css:
+		
+			<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath }/styles/Video_35_css.css" />
+			
+				Note the use of EL to obtain the context root (using the pageContext object).
+				
+		Put in an image:
+		
+			<img src="${pageContext.request.contextPath }/images/firefly.jpg" alt="site banner: tv show Firefly" ></img>
+			
+		Do whatever you need to do to create a quicky home page.
+		
+		
+VIDEO #51 Notes:
+
+	Reusable Fragments Using JSTL <c:import>
+	
+		This is a way to break up a webpage into manageable sections, like headers and footers. This is kind of like the JSP's
+		include, <%@ include file="file name" %>, except that you can include a larger variety of things like other websites, even.
+		(See Video #11 notes for JSP's include).
+		
+		Goal: Factor out of the webpage the header and footer, i.e., things we may want to see on many of our websites pages.
+		
+		I created the following for this tutorial:
+		
+			* Video_51_home.jsp 		
+			* Video_51_header.jsp
+			* Video_51_footer.jsp
+			
+		
+		Interesting: what you can do, and what the video shows, is cut out EVERYTHING that would be in the header, not just 
+		the "header" but the entire	web page guts. But does that mean ever page gets the same CSS or jQuery/javascript file? 
+		I don't know. I will leave all the "guts" at the top of the .jsp page in and only move the actual header and footer
+		stuff to their own files.
+		
+		[ ] Video_51_header.jsp & Video_51_footer.jsp
+		
+			Remove the header and footer parts of Video_51_home.jsp and paste them in here. 
+			
+			
+		The basic idea: you can include other pages into your web page.
+		
+		The video also demonstrated how to include specific information within the imported .jsp files using <c:param>, I 
+		implement this by using a page specific tagline imported into the header.
+		
+			In Video_51_home.jsp:
+			
+				<c:import url="Video_51_header.jsp">
+					<c:param name="tagLine" value="Take My Love, Take My Land...You Can't Take The Sky From Me!"></c:param>
+				</c:import>
+				
+			In Video_51_header.jsp:
+			
+				<p>${param.tagLine }</p>
+				
+				
+			This puts the value declared in home.jsp into the page that is being imported: header.jsp
+			
+			
+VIDEO #52 Notes:
+
+	SQL Queries with JSTL
+	
+	Goal: let the .jsp page do the SQL queries and database interaction. Note, this breaks MVC.
+	
+	Some good notes on the <sql:query>: http://www.docstoc.com/docs/100428386/Aula-14---JSTL-SQL
+	And at (down near the bottom): http://www.ibm.com/developerworks/library/j-jstl0520/
+	
+	***** 
+		Heads Up: I created a database with a single, small table for this video. My intent was to 
+		do the tutorials without having to mess with images. THIS video uses:
+		
+			Video_50_Controller.java & Video_51_home.jsp to show results.
+			
+		In preparation for videos 53 - 60 I create a vid_53 database with an images table. Using the
+		vid_53 database I re-do this video, video #52, THAT version uses:
+		
+			Video_53_Controller.java & Video_52_home.jsp to show results.
+			
+		AN ***index.jsp*** was created with hyperlinks to easily run the different versions:
+		
+			Link 1: runs the Video #52 code using the vid_52 database, Video_50_controller, and Video_51_home.jsp
+			Link 2: runs the Video #52 code using the vid_53 database, Video_53_controller, and Video_52_home.jsp
+			Link 3: runs the Video #53-60 code using the vid_53 database, Video_53_controller, video_53_home.jsp
+					and Video_56_displayImage.jsp
+					
+					
+		Sorry for any confusion. I could make these notes easier to follow by editing these notes to completely
+		do away with the use of the vid_52 database. However, some benefits:
+		
+			Got to create an index.jsp with links to different Controllers, going to different JSPs, using
+			two different databases. So that was good practice. Okay, onward!			
+	*****
+	
+		
+		Instead of writing JDBC code in servlets (see JSP_Tutorial_6, especially video_35 notes for review of servlet JDBC),
+		this technique uses JSTL tagging to handle connecting to the database and making SQL database queries/updates/etc. 
+				
+		We have been working with JSTL tags with a c-prefix: 
+		
+			<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+			
+		Now we are going to start working with sql-prefix:
+			
+				<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql" %>
+				
+		[ ] Configure DataSource for this project. (Condensed Video #34 Notes)
+		
+					
+				From http://tomcat.apache.org/tomcat-7.0-doc/jndi-datasource-examples-howto.html#MySQL_DBCP_Example, get this:
+				
+					<Resource name="jdbc/TestDB" 
+							  auth="Container" type="javax.sql.DataSource"
+		               		  maxActive="100" maxIdle="30" maxWait="10000"
+		               		  username="javauser" password="javadude" 
+		               		  driverClassName="com.mysql.jdbc.Driver"
+		               		  url="jdbc:mysql://localhost:3306/javatest"/>			
+	               
+					And change it to reflect your information; here's the one we used earlier:
+	               
+	               		  <Resource name="jdbc/webshop" 
+	               		  			auth="Container" type="javax.sql.DataSource"
+				               		maxActive="100" maxIdle="30" maxWait="10000"
+				              		username="webapp" password="hello" 
+				              		driverClassName="com.mysql.jdbc.Driver"
+				               		url="jdbc:mysql://localhost:3306/webshop"/>
+               
+               
+               		This goes into Eclipse --> Project Explorer --> Servers/Tomcat/context.xml --> between the <context></context> tags.
+               		
+               	I am going to create a new database for this video quite simply because I need the practice of going through those steps.
+               	So I will augment Servers/Tomcat.../context.xml by adding the following to connect to the vid_52 database I create below:
+               	
+               			<Resource name="jdbc/vid_52" 
+               		  			auth="Container" type="javax.sql.DataSource"
+			               		maxActive="100" maxIdle="30" maxWait="10000"
+			              		username="vid" password="52" 
+			              		driverClassName="com.mysql.jdbc.Driver"
+			               		url="jdbc:mysql://localhost:3306/vid_52"/>
+
+				And in JSP_Tutorial_8 I will add the following in web.xml
+				
+					What was in JSP_Tutorial_6's web.xml				What I put in JSP_Tutorial_8's web.xml:
+					
+					  <resource-ref>									<resource-ref>
+					    <description>DB Connection</description>			<description>DB Connection</description>
+					    <res-ref-name>jdbc/webshop</res-ref-name>			<res-ref-name>jdbc/vid_52</res-ref-name>
+					    <res-type>javax.sql.DataSource</res-type>			<res-type>javax.sql.DataSource</res-type>
+					    <res-auth>Container</res-auth>						<res-auth>Container</res-auth>
+					  </resource-ref>									</resource-ref>
+               		
+               		
+               	[ ] Create the database, a table, and insert some test data:
+               	
+               		Open command prompt.
+               		type in:	"mysql -u root -p".
+               		type in:	the password				--> access
+               		type in: 	"CREATE DATABASE vid_52;"	--> Query Ok, 1 row affected
+               		type in:	"use vid_52;"				--> Database changed
+               		type in: 	"create table users(id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, email VARCHAR(25), password VARCHAR(25));"
+               												--> Query OK, 0 rows affected.
+               		type in: 	"insert into users (email, password) values ('a@a.com', 'abC123');" 
+               												--> Query OK, 1 row affected.
+					type in: 	"insert into users (email, password) values ('b@b.com', 'bbB123');"   
+					
+					type in: 	"select * from users;" 		--> I can see the two entries I made into the database. 2 Rows in set.
+					
+					
+					[ ] Create user and password for that database:
+					
+						type in: 	"create user 'vid'@'localhost' identified by '52';"			--> Query OK, 0 rows affected.
+						type in: 	"grant all privileges on vid_52.* to 'vid'@'localhost';"	--> Query ok, 0 rows affected.
+						type in:	"flush privileges;"											--> Query ok, 0 rows affected.
+						
+						Now test the new user, try to log in as new user:
+						
+						type in: 	"exit"
+						type in: 	"mysql -u vid -p"
+						type in:	"52"	--> and user "vid" is granted access to vid_52 database.
+						
+						type in: 	"show databases;" 		--> user can see vid_52
+						type in:	"use vid_52;"			--> Database changed
+						type in:	"show tables;"			--> shows the users table
+						type in: 	" select * from users;"	--> see the 2 records that are in there.
+					
+					
+		[ ] Video_50_Controller.java --> set it up for JNDI:
+				
+				
+						You DO NOT NEED a Connection or DataSource object. In fact, you don't have to write ANY connection stuff.
+						The <sql:query> tag creates a connection for you. Isn't that odd? Here's a tiny bit of research/source on that:
+						
+							http://stackoverflow.com/questions/95134/how-does-jstls-sql-tag-work
+							
+						Basically, then, there's nothing special to do to the Controller to access the SQL database because
+						the .jsp <sql> tags will do that. 
+						          												
+            
+						JNDI source:   http://tomcat.apache.org/tomcat-7.0-doc/jndi-datasource-examples-howto.html#MySQL_DBCP_Example
+				
+							Notice how that site uses their test database in a JSP --> a mini-tutorial on using SQL in a JSP :)             		
+               		
+		[ ] Video_51_home.jsp
+		
+			Add the following taglib at the top of the page (in addition to the other one):
+			
+				<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql" %>
+				
+				Note in this second one the change of "core" to "sql".
+				
+				
+			The JSP will create the connection to the database via the <sql:query> tag. 
+			
+			If you have set up a JNDI source the JSP code looks like: 
+			
+				<sql:setDataSource var="bunny" dataSource="jdbc/vid_52" />
+				
+				<sql:query var="rabbit" dataSource="${bunny }">SELECT id, email, password FROM users</sql:query>
+				
+			If you HAVE NOT set up a JNDI then the JSP code might look like (source: http://www.tutorialspoint.com/jsp/jstl_sql_setdatasource_tag.htm )
+			
+				<sql:setDataSource 
+					var="bunny" 
+					driver="com.mysql.jdbc.Driver"
+				    url="jdbc:mysql://localhost/vid_52"
+				    user="vid"  
+				    password="52"	/>
+				
+				<sql:query dataSource="${bunny}" sql="..." var="rabbit" />
+				
+				or: source( http://www.hscripts.com/tutorials/jsp/jstltags/database-tag.php )
+				
+					<sql:setDataSource 
+				   		var="bunny" 
+				   		driver="com.mysql.jdbc.Driver"
+					    url="jdbc:mysql://localhost/test" 
+					    user="vid" 
+					    password="52"
+					    scope="session" />
+					    
+					    
+					<sql:update dataSource="${bunny}" var="rabbit">INSERT INTO users(email, password) VALUES("c@c.com","ccC123")</sql:update>
+					
+					
+			Notice you can code the SQL string either as an attribute inside the first tag, sql="the sql string here", or put 
+			the sql between the opening and closing tags.
+				
+				
+PREPARING FOR VIDEOS 53 - 60: Creating the "images" table in the database.
+
+Originally I had intended to only write the code in the notes with the idea of not having to find a dozen images, nor have those images
+be a part of these tutorial notes on GitHub. However, as I'm writing the notes now for Video #58 I am having a change of heart. So I am
+coming back here to create a new database for these videos with the following table: 
+
+	Database: vid_53		
+	table: images
+	
+	A quick look at the iamges table inside the vid_53 database (I changed "stem" to "imageName")
+	
+			columns:
+			
+			id	imageName	attribution_url		attribution_name	image_extension		rankings	average_ranking
+			
+			id 					--> the auto generated key
+			imageName			--> name of the image
+			attribution_url		--> URL of who's image this is
+			attribution_name	--> name of who's image this is
+			image_extension		-->	image extension, minus dot
+			rankings			--> the number of times this image has been ranked
+			average_ranking	--> add all ranking numbers, then divide by number of rankings (a float number)
+			
+			
+	Add the following to Servers/Tomcat.../context.xml:
+	
+		<Resource name="jdbc/vid_53" 
+	  			auth="Container" type="javax.sql.DataSource"
+           		maxActive="100" maxIdle="30" maxWait="10000"
+          		username="bunny" password="rabbit" 
+          		driverClassName="com.mysql.jdbc.Driver"
+           		url="jdbc:mysql://localhost:3306/vid_53"/>	
+	
+		
+	Add the following in web.xml:				
+										
+		<resource-ref>
+			<description>DB Connection</description>
+			<res-ref-name>jdbc/vid_53</res-ref-name>
+			<res-type>javax.sql.DataSource</res-type>
+			<res-auth>Container</res-auth>
+		</resource-ref>		
+		
+		
+	Create the database and table, then insert test data:	
+                  	
+		Open command prompt.
+       		type in:	"mysql -u root -p".
+       		type in:	the password				--> access
+       		type in: 	"CREATE DATABASE vid_53;"	--> Query Ok, 1 row affected
+       		type in:	"use vid_53;"				--> Database changed
+       		type in: 	"create table images(id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, imageName VARCHAR(25), 
+       					attribution_url varchar(100), attribution_name varchar (25), image_extension varchar (5),
+       					number_of_rankings int, average_ranking float);"
+       												--> Query OK, 0 rows affected.
+       		type in: 	"insert into images(imageName, image_extension, number_of_rankings, average_ranking) values ('WantedBook', 'jpg', 5, 3);" 
+       												--> Query OK, 1 row affected.
+       												
+			type in: 	....do the same thing for the other 8 images....   
+			
+			type in: 	"select * from images;" 	--> I can see the 9 entries I made into the database. 9 Rows in set.
+			
+			
+			Now create a user and password for that database:
+			
+				type in: 	"create user 'bunny'@'localhost' identified by 'rabbit';"								
+				type in: 	"grant all privileges on vid_53.* to 'bunny'@'localhost';"
+				type in:	"flush privileges;"								
+				
+				Now test the new user, try to log in as new user:
+				
+				type in: 	"exit"
+				type in: 	"mysql -u bunny -p"
+				type in:	"rabbit"	--> and user "bunny" is granted access to vid_53 database.
+				
+				type in: 	"show databases;" 		--> user can see vid_53
+				type in:	"use vid_53;"			--> Database changed
+				type in:	"show tables;"			--> shows the images table
+				type in: 	" select * from images;"--> see the 9 records that are in there.	
+				
+	Now copy the 9 images I used to add details to database, paste them into WebContent/images folder.
+	
+	Now add an index.jsp so I can easily run different controllers and different JSPs.
+	
+		These are the links so far (I'll be adding to it):
+		
+			<ul>
+				Run the original Video #52 code:
+				<li><a href="${pageContext.request.contextPath }/rabbit">Video_50_Controller --&gt; Video_51_home.jsp</a></li>
+				
+				Run the new Video #52 code:
+				<li><a href="${pageContext.request.contextPath }/Video_53_Controller?director=vid_52">Video_53_Controller --&gt; Video_52_home.jsp</a></li>
+			
+				Run Video#53 code:
+				<li><a href="${pageContext.request.contextPath }/Video_53_Controller?director=vid_53_home">Video_53_Controller --&gt; Video_53_home.jsp</a></li>
+			</ul>			
+	
+	Now create a Video_53_Controller.java.
+	
+		Use the Map technique noted in Video #56:
+		
+				String whereToGo = request.getParameter("director");
+				
+				// A Map, probably would pre-define it somewhere else
+				Map<String, String> directorMap = new HashMap<>();
+				
+				// put some values in it for now
+				directorMap.put("vid_52_home", "/Video_52_home.jsp");
+				directorMap.put("vid_53_home", "/Video_53_home.jsp");
+				
+				// Check for null or if "director" value not in directorMap
+				if(whereToGo == null || !directorMap.containsKey(whereToGo)){
+					
+					whereToGo = "/Video_52_home.jsp";
+				
+				}else{
+				
+					whereToGo = directorMap.get(whereToGo);
+				}
+				
+				request.getRequestDispatcher(whereToGo).forward(request, response);			
+	
+	
+	
+	Now re-do Video #52 using Video_52_home.jsp:
+	
+		Video_52_home.jsp code in brief:	
+	
+	
+			<c:import url="Video_51_header.jsp">
+				<c:param name="tagLine" value="Take My Love, Take My Land...You Can't Take The Sky From Me!"></c:param>
+			</c:import>
+				
+				<div id="content">
+					<h1>Content</h1>
+						
+						
+				<sql:setDataSource var="bunny" dataSource="jdbc/vid_53" />
+				
+				<sql:query var="rabbit" dataSource="${bunny }">SELECT id, imageName, image_extension FROM images</sql:query>
+					
+				<table>
+					<tr><th>id</th><th>name</th><th>extension</th></tr>
+					<c:forEach var="row" items="${rabbit.rows }" >	
+						<tr>
+						<th>record ${row.id }</th><td>${row.imageName }</td><td>${row.image_extension }</td>
+						</tr>	
+					</c:forEach>	
+				</table>	
+				
+				</div>
+				
+			<c:import url="Video_51_footer.jsp"></c:import>	
+			
+			
+	Now create a Video_53_home.jsp.		
+			
+		The content of this is the tutorials Video #53 & #54 combined.
+		
+		
+			
+VIDEO #53 Notes:
+
+	Setting Variables in JSTL 
+	
+	****I did not actually code this, this code is added to Video_53_home.jsp in the next video (where a table is used,
+		since I was already using a table anyway).
+	
+		In the last video John obtained the name and extension of an image from the database:		
+		
+				<sql:query dataSource=${bunny} sql="select * from images" var="results" />
+			
+			
+		In this video he shows how to display those 10 images:		
+		
+				<c:forEach var="image" items="${results.rows}">
+				
+					<p><img src="${pageContext.request.contextPath}/pics/${image.imageName}.${image.imageExtension}" /></p>
+					
+				</c:forEach>
+			
+		
+		The goal of this video is to teach the <c:set> stuff, so I'll copy the stuff immediately above 
+		and add in the c:set stuff:
+		
+				<c:forEach var="image" items="${results.rows}">
+				
+					<c:set scope="page" var="bunny" value="${image.imageName}.${image.imageExtension}"></c:set>
+				
+					<p><img src="${pageContext.request.contextPath}/pics/${bunny}" /></p>
+					
+				</c:forEach>		
+				
+			
+			NOTE: I like to name things like "bunny" rather than "image" to make it crystal clear to myself that these
+			names could be anything.
+		
+		
+		Basically, using <c:set> allows you to stuff whatever value you like into a 'var' variable that you've named.
+		
+		
+VIDEO #54 Notes:
+
+	Expressions in EL (Expression Language)
+	
+	See Video_53_home.jsp for implementation.
+	
+	Goal: layout the images in the previous tutorial into a grid (a table with 5 columns)
+	
+		<table>
+		
+			<c:set var="tableWidth" value="5" />
+			
+			<c:forEach var="row" items="${rabbit.rows}" varStatus="hulk" >
+			
+				<c:if test="${hulk.index % tableWidth == 0}">
+					<tr>
+				</c:if>
+			
+				<c:set scope="page" var="name_path" value="${row.imageName}.${row.image_extension}"></c:set>
+			
+				<td><img src="${pageContext.request.contextPath}/images/${name_path}" /></td>
+				
+				<c:if test="${hulk.index +1 % tableWidth == 0}">
+					</tr>
+				</c:if>				
+				
+			</c:forEach>			
+		</table>
+		
+		
+VIDEO #55 Notes:
+
+	Creating URLs with JSTL
+	
+	
+	Goal: be able to click an image (from within the table created in the previous tutorial) and be taken to a different 
+	.jsp page that, maybe, features only the clicked image and an ability to give it a rating.
+	
+	See notes at top of page regarding changing web.xml mapping that is shown in this video.			
+
+	Augment the table:
+	
+		<table>
+		
+			<c:set var="tableWidth" value="8" />
+			
+			<c:forEach var="row" items="${rabbit.rows}" varStatus="hulk" >
+			
+				<c:if test="${hulk.index % tableWidth == 0}">
+					<tr>
+				</c:if>
+			
+				<c:set scope="page" var="name_path" value="${row.imageName}.${row.image_extension}"></c:set>
+			
+				<td>
+				
+					<a href='<c:url value="/Video_53_Controller?director=vid_56&imageID=${row.id }" />' >
+					
+			
+						Notes:
+							"director" is the URL key I use in Controller to shuttle users to different places;
+							director's value "vid_56" will inform the Controller to go to Video_56_displayImage.jsp.
+							"&" is the symbol for sending a second key:value pair; 
+							"image" and it's value will be forwarded to Video_56_displayImage.jsp.
+							image's value, ${row.id} is the row that this image belongs to in the database table. 
+							 
+							the <c:url> tag adds the context root automatically.
+						 
+							If user has cookies turned off a session ID is used to communicate with the server. See Video #28's notes.
+				
+						<img height="97" width="60" src="${pageContext.request.contextPath }/images/${name_path }"/>
+					
+					</a>
+				
+				</td>
+				
+				<c:if test="${hulk.index +1 % tableWidth == 0}">
+					</tr>
+				</c:if>				
+				
+			</c:forEach>			
+		</table>	
+		
+		
+		Summary: "<c:url>" automatically includes the context root, and, it will include a j-session ID if cookies are turned off.
+		
+		
+		Not part of tutorial --> just me thinking out loud:
+		
+			John mentions that he will accomplish making his Controller respond to the links off screen. How I might handle that:
+			
+				[ ] Remind ourselves of the URL being sent when an image is clicked:
+				
+					href="<c:url value="/rabbit?director=image&image=${image.id}" />"
+					
+					Realize I need to handle these keys: director, image
+					
+				[ ] Set my Enums to handle "director" values.
+				[ ] Switch on my "director" values.
+				
+				[ ] If "director" value equals "image" then I would have created a method, maybe "showImage()"
+				
+				[ ] in showImage()
+				
+					This method would be passed, or obtain, the URL parameters for the key "image" and its value: the row in the database
+					table that holds that image's details.
+					
+					Create a SQL query to obtain that specific record from the database.
+					
+					Obtain the image.
+					
+					Attach image to a request object as an attribute.
+					
+					Pass the image object to whatever .jsp page I have for showing these images one at a time.
+					
+					
+					And I think that'd be about it.
+					
+			...but we will learn John's approach in the next video.
+			
+			
+VIDEO #56 Notes:
+
+	Wildcards & Getting a Single Row from a SQL Query in JSTL.
+	
+	NOTE: At the start of this video John shows using a Map to direct users to various URL locations. I have been using a Switch
+	and switching on Enums. But what John does is better, I think, so use a map:
+	
+		[ ] Video_53_Controller.java's doGet():
+		
+			String whereToGo = request.getParameter("director");
+			
+			// A Map, probably would pre-define it somewhere else
+			Map<String, String> directorMap = new HashMap<>();
+			
+			// put some values in it for now
+			directorMap.put("vid_52_home", "/Video_52_home.jsp");
+			directorMap.put("vid_53_home", "/Video_53_home.jsp");
+			directorMap.put("vid_56", "/Video_56_displayImage.jsp");
+			
+			// Check for null or if "director" value not in directorMap
+			if(whereToGo == null || !directorMap.containsKey(whereToGo)){
+				
+				whereToGo = "/Video_52_home.jsp";
+			
+			}else{
+			
+				whereToGo = directorMap.get(whereToGo);
+			}
+			
+			request.getRequestDispatcher(whereToGo).forward(request, response);	
+			
+			
+			NOTE: in the forwarded request contains the "image" key in the URL parameter, this key
+			holds the value of a row in the database for the clicked image. Reminder, we set that
+			by doing this in Video_53_home.jsp:
+			
+					<a href='<c:url value="/Video_53_Controller?director=vid_56&imageID=${row.id }" />' >		
+		
+		
+		[ ] Video_56_displayImage.jsp
+		
+			Some good notes on the <sql:query>: http://www.docstoc.com/docs/100428386/Aula-14---JSTL-SQL
+			
+			Import header and footer in appropriate locations:
+			
+					<c:import url="Video_51_header.jsp">   <c:param name="title" value="Video 56"</c:param>   </c:import>
+					<c:import url="Video_51_footer.jsp"></c:import>	
+				
+			Set the SQL datasource:
+			
+					<sql:setDataSource var="bunny" dataSource="jdbc/vid_53" />
+				
+			Perform a SQL query:
+			
+					<sql:query var="rabbit" dataSource="${bunny }">
+						SELECT id, imageName, image_extension 
+						FROM images
+						WHERE id=?
+						<sql:param>${param.imageID }</sql:param>		
+					</sql:query>
+				
+			Get one item (the first item) from the set of results returned from the query:
+			
+					<c:set scope="page" var="oneResult" value="${rabbit.rows[0]}" />
+		
+			Get image name:
+			
+					<c:set scope="page" var="imageName" value="${oneResult.imageName }.${oneResult.image_extension }" />
+				
+			Display image:
+			
+					<img src="${pageContext.request.contextPath }/images/${imageName}" />
+				
+				
+				
+VIDEO #57 Notes:
+
+	JSTL Functions
+	
+	THE resource: http://docs.oracle.com/javaee/5/jstl/1.1/docs/tlddocs/fn/tld-summary.html
+	
+	Goal: demonstrate using JSTL functions. We will be capitalizing the first letter of the word the database returned
+	for the title of a picture. John notes that this would actually be easier to do with CSS but we'll do it here anyway
+	just to show the use of a JSTL function.
+	
+	[ ] Video_56_displayImage.jsp
+	
+		add a taglib:
+		
+			<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+	
+		Display name of image that is in database:
+		
+			<h2>${oneResult.imageName}</h2>
+			
+			Now change that using a JSTL function:
+			
+				This gets the first letter of the word; then gets the remaining letters of the word:
+				
+					<h2>${fn:subString(oneResult.imageName, 0, 1)}${fn:substring(oneResult.imageName, 1, -1)}</h2>
+			
+				Take that idea and supply the first part to the toUpperCase method:
+				
+					<h2>${fn:toUpperCase(fn:subString(oneResult.imageName, 0, 1))}${fn:substring(oneResult.imageName, 1, -1)}</h2>
+					
+				Now take what you've done, make the second part lower case, and put it all in a <c:out>
+				
+					<h2><c:out value="${fn:toUpperCase(fn:subString(oneResult.imageName, 0, 1))}${fn:toLowerCase(fn:substring(oneResult.imageName, 1, -1))}" /></h2>
+					
+		However, I actually do want to perform some trickery. All of my image files are named like:
+		
+			WantedDoc
+			
+		I would like to put a space and a colon between the "Wanted" and the character's name.
+			
+			Wanted: Doc
+			
+		This is what I did to achieve that:
+			
+			<h1><c:out value="${fn:substring(oneResult.imageName, 0, 6)}: ${fn:substring(oneResult.imageName, 6, -1)}" /></h1>
+					
+	
+	
+VIDEO #58 Notes:
+
+	SQL Updates and the Transactions Tag in JSTL	
+	
+	Goal: update the database with a value.
+	
+		[ ] Video_56_displayImage.jsp -- overview
+		
+			Add a form to the page for ranking the displayed image.
+			
+				Form:
+					[ ] 5 radio buttons --> each with a common name, values 1-5;
+					[ ] When submit button is clicked obtain the average ranking of the image.
+					
+					
+			Submit to Controller with URL parameters:
+			
+				director = rank
+				ranking = value of radio button
+				
+		[ ] Video_53_Controller.java
+		
+			Obtain the URL params "director" and "ranking".
+			Forward to Video_56_disiplayImage.jsp
+							
+			
+		[ ] Video_56_displayImage.jsp -- details:
+		
+			What we have prior to this video:
+			
+					// Header
+					<c:import url="Video_51_header.jsp">
+						<c:param name="tagLine" value="Take My Love, Take My Land...You Can't Take The Sky From Me!"></c:param>
+					</c:import>				
+				
+					//Set the SQL datasource			
+					<sql:setDataSource var="bunny" dataSource="jdbc/vid_53" />
+				
+					//Perform a SQL query			
+					<sql:query var="rabbit" dataSource="${bunny }">
+						SELECT id, imageName, image_extension 
+						FROM images
+						WHERE id=?
+						<sql:param>${param.imageID }</sql:param>		
+					</sql:query>
+				
+					//Get one item (the first item) from the set of results returned from the query			
+					<c:set scope="page" var="oneResult" value="${rabbit.rows[0]}" />
+		
+					//Get image name			
+					<c:set scope="page" var="imageName" value="${oneResult.imageName }.${oneResult.image_extension }" />
+				
+					// Display image name:
+					<h1><c:out value="${fn:substring(oneResult.imageName, 0, 6)}: ${fn:substring(oneResult.imageName, 6, -1)}" /></h1>
+					
+					//Display image:			
+					<img src="${pageContext.request.contextPath }/images/${imageName}" />		
+			
+					// Footer
+					<c:import url="Video_51_footer.jsp"></c:import>	
+					
+			What we add in this video:
+			
+				// JSTL variable for average_ranking
+				<c:set scope="page" var="average_ranking" value="${oneResult.average_ranking}" />
+				
+				// If the URL sent to this .jsp has a "director" key with a value of "rank" (ie, if the form was submitted, Controller returned these params).
+				<c:if test='${param.director == "rankImage"}' >	
+				
+					// JSTL variable for new average rank: (average * number of rankings + current ranking) divided by (number of rankings + this current ranking, ie, "1")
+					<c:set scope="page" var="newAverageRank" value="${ (oneResult.average_ranking * oneResult.number_of_rankings + param.ranking) / (oneResult.number_of_rankings +1) }" />
+					
+					// Update previously defined var="average_ranking" with new average_ranking
+					<c:set scope="page" var="average_ranking" value="${newAverageRank}" />	
+					
+					//Update database with new average ranking (average_ranking) and total number of rankings (rankings)
+					<sql:update dataSource="${bunny }">
+						UPDATE images
+						SET average_ranking=?
+						WHERE id=?
+						<sql:param>${newAverageRank }</sql:param>
+						<sql:param>${param.imageID }</sql:param>
+					</sql:update>
+					
+					<sql:update dataSource="${bunny }">
+						UPDATE images
+						SET number_of_rankings=?
+						WHERE id=?
+						<sql:param>${oneResult.number_of_rankings +1 }</sql:param>
+						<sql:param>${param.imageID }</sql:param>
+					</sql:update>		
+				
+				</c:if>
+				
+				// Display image's average ranking
+				<p id="ranked">Average Rank: ${average_ranking } /></p>
+				
+
+			Now use a SQL transaction:
+			
+				Now the interesting thing with a <sql:transaction> is that it can only handle one datasource
+				so we will be taking out the datasource references from the code and putting a single
+				reference to the datasource in the <sql:transaction>:
+			
+				<sql:transaction>
+					put all the SQL transactions you've done in here
+				</sql:transaction>
+			
+	
+VIDEO #59 Notes:
+
+	Formatting Using JSTL
+	
+	THE resource: http://docs.oracle.com/cd/E17802_01/products/products/jsp/jstl/1.1/docs/tlddocs/fmt/tld-summary.html
+	
+	Add a taglib:
+		
+		<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+		
+	Format the display of average rankings:
+	
+	<p id="ranked">Average Rank: <fmt:formatNumber value="${average_ranking }" maxFractionDigits="1" /></p>
+	
+	
+VIDEO #60 Notes:
+
+	Custom Tags
+	
+	
+	[ ] Video_60_CustomTags.tag
+	
+		Go to WEB-INF --> R-click --> New --> other --> web/create JSP Tag.
+		Create a folder inside WEB-INF, name it whatever you want, put new tag in it.
+		
+			...ACTUALLY, don't name it whatever you want, I named it "myTags" and received
+			a Tomcat error that my tag wasn't in WEB-INF/tags.
+		
+			Things you put in WEB-INF are accessible to your program but not to the public.
+			
+			You can put whatever you like inside of your own JSP tag: HTML, scriptlets (not the best), JSTL tags,
+			etc.
+			
+		
+		Put a taglib in Video_56_displayImage.jsp:
+		
+				<%@ taglib tagdir="/WEB-INF/myTags" prefix="rs" %>
+			
+				prefix can be whatever you want.
+			
+		Test 1:
+		
+			1) put <p>Hello there from a custom tag</p> inside Video_60_CustomTag.tag
+			2) Pick a spot in the .jsp and put your tag in there:
+			
+					<rs:Video_60_CustomTags></rs:Video_60_CustomTags>
+					
+			3) Observe results in browser: "Hello from custom tag."
+			
+				
+		Test 2:
+		
+			1) Add custom attribute:
+			
+					<%@ attribute name="width" required="false" type="java.lang.Integer" description="image width in pixels" %>
+				
+			2) in custom tag's HTML make a reference to the custom attribute via EL:
+			
+					<p>Hello from custom tag: ${width }</p>
+				
+			3) in JSP use the custom tag's custom attribute: 
+			
+					<rs:Video_60_CustomTags width="100"></rs:Video_60_CustomTags>
+					
+					
+			4) Observe the results in the browser: "Hello from custom tag: 100"
+				
+				
+		Test 3: 
+		
+			1) in custom tag put in a <c:if> to test whether custom attribute is empty, if so give it a value.
+			
+					<c:if test="${empty width}" >
+					
+						<c:set var="width" value="200" />
+						
+					</c:if>
+					
+			2) in JSP that uses the custom tag remove the reference to the attribute:
+			
+				ie, from this:
+				
+					<rs:Video_60_CustomTags width="100"></rs:Video_60_CustomTags>
+					
+				to this:
+				
+					<rs:Video_60_CustomTags></rs:Video_60_CustomTags>
+					
+			3) observe the result in the browser: "Hello from custom tag: 200"
+			
+			
+		Test 4:
+		
+			1) Add two more attributes:
+			
+				<%@ attribute name="fileName" required="true" type="java.lang.String" description="file name without extension" %>
+				<%@ attribute name="fileExtension" required="true" type="java.lang.String" description="file extension" %>
+				
+			2) in JSP add new attributes information:
+			
+				from this: 
+				
+					<rs:Video_60_CustomTags></rs:Video_60_CustomTags>
+				
+				to this: 
+				
+					<rs:Video_60_CustomTags fileName="oneResult.imageName" fileExtension="oneResult.image_extension" />
+					
+			3) in JSP comment out (or remove) the other <img>:			
+				
+				<%/* 
+				<img width="300" src="${pageContext.request.contextPath }/images/${imageName}" />
+				*/%>
+				
+				
+			4) in JSP you can now remove this:
+			
+				<c:set scope="page" var="imageName" value="${oneResult.imageName }.${oneResult.image_extension }" />
+				
+				It was only used in the original <img> and now our custom tag is directly taking in the the 
+				imageName and image_extension as attributes.
+				
+
+		Everything works. Be happy! Yay!
+		
+		
+THE END!
+	

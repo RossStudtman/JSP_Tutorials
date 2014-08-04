@@ -1,0 +1,75 @@
+/*
+	Ross Studtman
+	July, 2014
+*/
+
+
+/* ******************** */
+/* Global changes       */
+/* ******************** */
+
+/* alterations to body defaults */
+body{
+	margin: 0em;
+	/* 
+		Most browser default font-size = 16px.
+		If we set font-size to 62.5% of 16px --> 10px. 
+		Now 1em = 10px.
+		This makes em to pixels very easy to understand:
+		
+			1.2em = 12px; 
+			1.6em = 16px; 
+			2.4em = 24px; 
+			etc.
+	*/
+	font-size: 62.5%; /* font-size 1em = 10px */
+	font-family: arial, sans-serif;
+}
+
+/* style the div that holds all other elements */
+#wrapper{
+	font-size: 1.6em;
+	position: relative;
+	margin: 1.0em auto;
+	
+	border-width: 0.6em 0.6em 0.8em 0.6em;
+	border-style: solid;
+	border-color: #22ccff;
+	padding: 0.5em 1.0em 2.0em 1.0em;
+	text-align: center;
+}
+
+#header{
+	border: 1em solid grey;
+	background-color: #aaa;
+	color: white;
+}
+
+footer{
+	margin-top: 5em;
+	border: 1em solid grey;
+	background-color: #aaa;
+	color: white;
+}
+
+#content{
+	
+}
+form{
+	width: 200px;
+	text-align: left;
+	margin: 0 auto;
+	padding-top: 2em;
+}
+form label{
+	display: block;	
+}
+form > label{
+	padding-top: 1em;
+}
+
+#ranked{
+	font-size: 1.5em;
+	color: red;
+	font-weight: bold;
+}

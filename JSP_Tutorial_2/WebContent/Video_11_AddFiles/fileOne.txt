@@ -1,0 +1,5 @@
+This is text inside fileOne.
+
+Skip a line for giggles.
+
+Notice how the line breaks are not observed.

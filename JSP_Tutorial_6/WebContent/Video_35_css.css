@@ -1,0 +1,71 @@
+/*
+	Ross Studtman
+	July, 2014
+*/
+
+
+/* ******************** */
+/* Global changes       */
+/* ******************** */
+
+/* alterations to body defaults */
+body{
+	margin: 0em;
+	/* 
+		Most browser default font-size = 16px.
+		If we set font-size to 62.5% of 16px --> 10px. 
+		Now 1em = 10px.
+		This makes em to pixels very easy to understand:
+		
+			1.2em = 12px; 
+			1.6em = 16px; 
+			2.4em = 24px; 
+			etc.
+	*/
+	font-size: 62.5%; /* font-size 1em = 10px */
+	font-family: arial, sans-serif;
+}
+
+/* style the div that holds all other elements */
+#wrapper{
+	font-size: 1.6em;
+	position: relative;
+	margin: 1.0em auto;
+	width: 460px;
+	border-width: 0.6em 0.6em 0.8em 0.6em;
+	border-style: solid;
+	border-color: #555;
+	padding: 0.5em 1.0em 2.0em 1.0em;
+	/* ensure wrapper's border covers floated divs at the bottom */
+	overflow: hidden; 
+}
+
+/* give text inputs with focus a signifying background color */
+input:focus{
+	background-color: #FFA;
+}
+
+/* style all labels to display inline-block: gets rid of <br/> */
+#wrapper label{
+	display: block;
+	margin: 0.4em;
+}
+
+/* center project3_login.html labels */
+#loginForm label{
+	position: relative;
+	left: -10em;
+	text-align: right;
+}
+
+/* select the only <p> tag in the form */
+#loginForm p:only-of-type{
+	text-align: right;
+}
+
+/* login error */
+#loginError{
+	font-size: 1.5em;
+	font-weight: bold;
+	font-color: red;	
+}
