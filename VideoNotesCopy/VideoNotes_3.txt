@@ -1,0 +1,613 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 15 through 20
+
+Video #15: Model 1 & 2 Architecture
+Video #16: How to include JAR files
+Video #17: Servlet life cycle
+Video #18: JSP Beans
+Video #19: Beans & Scope
+Video #20: Setting Bean properties using parameters
+
+VIDEO #15 Notes:
+
+	Model One & Model Two Architecture
+	
+	A powerful mechanism to get JSPs and servlets working together for good scalability. 
+	
+		I created the following to demonstrate this:
+		
+			* video_15_controller -- a package
+			* Video_15_ControllerServlet.java -- inside video_15_controller package
+			* DirectorEnums.java -- the enums for URL parameter key "director".
+			* index.jsp -- the "landing" page
+			* Video_15_login.jsp
+			* Video_15_about.jsp
+			* Video_15_error.jsp
+			
+		Model One Architecture: have JSPs invoke other JSPs via HTML hyperlinks.
+		
+			Problem with it: the larger the site the more difficult it is to keep straight which page is connecting which other page(s). 
+			And being able to guide the user through desired web-page-sequences becomes more difficult to track and execute.
+		
+		Model Two Architecture: .jsp requests routed through one servlet.
+		
+			A Model-View-Controller (MVC) architecture. 
+				
+				Model: Data model, stuff related to your database and data handling.
+				View: Stuff related to presentation of data. (.jsp in this case)
+				Controller: The business logic, decides what page to go to next; & performs other processing. (the servlet)
+				
+				(any of those could be several classes but here the Controller is a single servlet)
+				
+	[ ] index.jsp
+	
+		Make hyperlinks to Video_15_ControllerServlet
+		
+			A note about URLs: domain/ context root / [...specific page]
+				
+				example URL to the controller: 
+				
+					http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet
+					
+						domain: 			http://localhost:8080
+						root: 				JSP_Tutorial_3/
+						specific "page":	Video_15_ControllerServlet
+					
+				Typically you do not specify the domain because that can change. Instead you specify the 'relative' URL, the stuff after
+				the domain name.
+				
+				Remember, "?" at the end of a URL indicates parameters are coming in the next part of the URL (in key=value pairs).
+				
+			Append a ? to the hyperlink (context root + controller servlet) followed by a keyword you'll use to indicate to the servlet
+			that what follows are values that represent which .jsp to serve up. I used "?director" as the keyword because I plan to 
+			have the servlet direct traffic.
+			
+			Clicking on a hyperlink invokes the servlet's doGet() method.
+			
+	[ ] Video_15_ControllerServlet.java:
+	
+		doGet():
+		
+			John uses an if-condition to determine routing. I want to use the switch conditional I developed in Video #11 (the Enum version).
+			In either case, this logic would likely be removed to its own class so it isn't cluttering up the doGet(); but I won't do that 
+			here. ((Note, after completing the video tutorials I can now report that a Map seems to be the best choice. You'll see that in
+			JSP_Tutorial_8)).
+				
+			Couple of things to note:
+				
+				If you try putting this in the browser address bar: context root + SERVLET ADDRESS + specific page:
+				
+						http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet/index.jsp
+						http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet/Video_15_about.jsp
+						http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet/Video_15_error.jsp
+						http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet/Video_15_login.jsp
+						
+						--> they all go to the Video_15_error.jsp because the controller's doGet() method is triggered and no "director"
+						parameter was supplied, so as it currently stands the logic inside the controller's switch statement assigns
+						null "director" values to the Video_15_error.jsp page. That's why all of the above go to the error page.
+						
+						However, probably better to route the user to the index.jsp page (instead of error page) so they can click on a proper link.
+						
+						This too will go to the error page because doGet() is invoked without a "director" key and value, resulting in the
+						"NO_VALUE" enum in the switch being chosen:
+						
+							http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet
+				
+				If you bypass the Video_15_ControllerServlet you can still go directly to pages with the correct address:
+				
+						http://localhost:8080/JSP_Tutorial_3/Video_15_about.jsp --> goes to about page.
+						http://localhost:8080/JSP_Tutorial_3/Video_15_login.jsp --> goes to login page.
+						http://localhost:8080/JSP_Tutorial_3/index.jsp 			--> goes to home page.
+					
+					These URLs go where you point them because they are NOT going through the Video_15_ControllerServlet.
+					
+	[ ] DirectorEnums.java
+	
+		A simple set of enums:
+		
+			// Home page
+			INDEX, 
+			
+			// About page
+			ABOUT, 
+			
+			// Error page
+			ERROR, 
+			
+			// Login page
+			LOGIN,
+			
+			// No value given for parameter key.
+			NO_VALUE, 
+			
+			// Value given for parameter key but it is unrecognized.
+			INCORRECT_VALUE			
+			
+					
+	 Run the index.jsp page.
+	
+		Click the links on the page.
+		
+			"Login Page" goes to this address: 
+			
+				http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet?director=login
+				
+			"About Page" goes to this address:
+			
+				http://localhost:8080/JSP_Tutorial_3/Video_15_ControllerServlet?director=about
+				
+		These work because of the HREF you put into index.jsp said those links should go through the controller servelet with the 
+		parameter key "director" assigned to values you specified.
+				
+		See Video_15_ControllerServlet.java for notes.
+		
+
+VIDEO #16 Notes:
+
+	How to include .jar files.
+	
+	No code written for this video.
+	
+	To get project to compile with the .jar:
+	
+		R-click project --> Build Path --> Configure Build Path... --> "Properties for <name of your project>" (title of popup) pops up with the
+		"Java Build Path" selected from the menu on the left & showing in the right pane. The right pane has the "Libraries" tab
+		selected already.
+		
+		If the JAR is within your project folder click "Add JARs..." button on the right.
+		If the JAR is somewhere else click "Add External JARs..." button on the right --> browse to the .jar.
+		
+		John's words, "Once you've done that you will be able to compile your project but you won't actually be able to run it."
+		
+		To access the .jar when the project is running it needs to be in either of these places:
+		
+			A) If you want the .jar to be available for all projects put it in Tomcat's "lib" folder.
+			
+			B) Maybe you don't have access to the server's "lib" folder or the .jar is meant for a single project, put it in
+				WebContent/WEB-INF/lib folder. 
+				
+					Just copy and paste it in there.
+					
+					Or,
+					
+					R-click project --> Properties --> "Properties for <name of your project>" (title of popup) pops up --> select "Resource" 
+					from list on the left, and in right pane take note of where "Location:", for me it says "C:\Eclipse Projects\JSP_Tutorial_3"
+					which is where I told Java to put my projects + the name of my project.
+					
+						I could go directly to C:/Eclipse Projects/JSP_Tutorial_3/WebContent/WEB-INF/lib and paste the .jar file in there.
+						
+						(My use of the forward slash is only to convey where to paste the .jar, not meant to be an actual path I would type into 
+						anything).
+						
+				When you create a WAR file the .jar will be included with the project.
+					
+
+VIDEO #17 Notes:
+
+	Servlet life cycle.
+	
+	No code written for this video.
+	
+		The servlet is loaded by the application server. 
+			(either when deployed or when it receives the first request -- depends on settings we aren't interested in at the moment).
+			
+		The init() method is called. 
+		
+			This happens once for the lifetime of the servlet.
+			
+		Can now field requests with doGet() and doPost() methods.
+		
+			The servlet is now loaded into the server application's memory (Tomcat on this local server) and "it will sit there, potentially for
+			years, as people surf your internet site," says John.
+			
+		The destory() method is called when the application or the application server is shut down.
+		
+			Well in theory anyway; a nuclear strike against the server that is running the application server...may not have time to run the
+			destroy() method :)
+			
+
+VIDEO #18 Notes:
+
+	JSP Beans
+	
+		Beans are a way to share data between .jsp pages.
+		
+		Beans are simple classes that can be used to build simple objects that basically store fields, often called "properties".
+		Beans have simple getters and setters and maybe a toString, a constructor of course, but not much else. They basically just hold information
+		and allow access to that information.
+		
+		I created the following to demonstrate this:
+		
+			* beans -- a package
+			* Video_18_UserBean.java -- in beans package.
+			* Video_18_howToSetBeanData.jsp
+			* Video_18_howToGetBeanData.jsp
+			
+	[ ] Video_18_UserBean.java:
+	
+			Add userName and userID instance fields.
+			
+			Important note: initially, without thinking, I asked the IDE (eclipse) to make a constructor using the instance fields. But when
+			I ran the code (after the other steps in this tutorial) an error was generated; I discovered a bean needs a default, no-arg
+			constructor to work properly.
+			
+	[ ] Video_18_howToGetBeanData.jsp:
+	
+		Add bean tag to allow this .jsp page to use the bean:
+		
+			<jsp:useBean id="user" class="bean.Video_18_UserBean" scope="session"></jsp:useBean>
+			
+			The value of "id" may be any value you like as long as it is unique (from other useBean) on the JSP page.
+			
+		Once this .jsp page is allowed to use the bean then obtain bean data...
+		
+		...only works if a bean has been stored in a session object:
+		
+			<p>User name: <%= user.getUserName() %></p>
+			<p>User ID: <%= user.getUserID() %></p>		
+			
+		...if you run this prior to the session object being given the bean to hold (this is what scope="session"
+		does, we'll learn more about that later) then the bean values will be null.
+		
+		
+		Techniques for getting a Bean's property:
+		
+			These convert the value of the property into a string:
+			
+				1) Via a tag (not shown in John's video):
+				
+					<jsp:getProperty name="anyNameYouLike" property="property_name" />
+					
+				2) Via an Expression tag (shown in John's video):
+				
+					<%= anyNameYouLike.aGetterMethodForAPropertyInsideYourBeanClass() %>
+					
+					
+			This technique retrieves the property value without conversion:
+			
+				1) Has to be in a scriplet (source: http://docs.oracle.com/javaee/1.3/tutorial/doc/JSPIntro11.html)
+			
+					<% int foo = anyNameYouLike.getPropertyName() %>
+					
+					or, maybe the property is a composition of a class you made:
+					
+					<% MyFancyClass mfc = sameIdAsIn_useBean_Tag.getMyFancyClass() %>		
+			
+		
+	[ ] Video_18_howToSetBeanData.jsp:
+	
+		Add bean tag to allow this .jsp page to use the bean:
+		
+			<jsp:useBean id="user" class="bean.Video_18_UserBean" scope="session"></jsp:useBean>
+			
+		Once the .jsp page is allowed to use the bean, you can set properties on the bean:
+		
+			<jsp:setProperty name="user" property="userName" value="Ross" />
+			<jsp:setProperty name="user" property="userID" value="007" />	
+				
+				
+		There are two ways to set a Bean's properties:
+		
+			1) In a scriptlet (not shown in John's video):
+			
+				<% anyNameYouLike.setPropertyName(value); %>
+				
+					Of course you need to have a "setPropertyName" method defined in the Bean.java.
+					
+			2) In a tag (shown in John's video):
+			
+				<jsp:setProperty name="anyNameYouLike" property="oneOfThePropertiesDefinedInTheBean" value="someHardCodedValueForNow" />
+				
+			
+	Summary:
+	 
+		A bean is just a class that holds some data. 
+		You can set the data with the set bean tag.
+		You can get at the data with the get bean tag.
+		
+		Cannot use JSP beans in servlets but you can accomplish the same thing using other techniques.
+		
+		
+VIDEO #19 Notes:
+
+	Beans & Scope
+	
+	A bean has a scope set by the "scope" attribute. As we saw in Video 18:
+	
+		<jsp:useBean id="user" class="bean.Video_18_UserBean" scope="session"></jsp:useBean>
+		
+		
+	SESSION SCOPE
+		
+		The scope used in Video #18.
+		
+		Session scope sets a cookie on the browser that holds the bean data. This cookie will last for a certain amount of time and 
+		will survive, as cookies do, across browser restarts or surfing to different web pages. 
+		
+		Anything that wipes out cookies (like closing an "incognito" window were the cookie was set in the first place) will wipe out 
+		the cookie holding the bean data.		
+		
+		Tomcat's default timeout is 30 minutes.
+			(Stackoverflow resource for finding where that session attribute is set in Tomcat:
+				http://stackoverflow.com/questions/14433070/default-session-timeout-for-apache-tomcat-applications)
+				
+		
+	PAGE SCOPE
+		
+		I created the following to demonstrate this:
+		
+			* Video_19_setPageScopeBean.jsp
+			* Video_19_getPageScopeBean.jsp
+			
+		[ ] Video_19_setPageScopeBean.jsp
+		
+			Add bean tag to allow this .jsp page to use the bean:
+			
+				<jsp:useBean id="pageBean" class="bean.Video_18_UserBean" scope="page"></jsp:useBean>
+				
+				Note scope is now set to page.
+				
+			Set properties on bean:
+			
+				<jsp:setProperty name="pageBean" property="userName" value="Ross" />
+				<jsp:setProperty name="pageBean" property="userID" value="007" />	
+				
+			Run this .jsp page and note how this .jsp has immediate access to those properties:
+			
+				<li>User name: <%= pageBean.getUserName() %></li>
+				<li>User ID: <%= pageBean.getUserID() %></li>			
+		
+			
+		[ ] Video_19_getPageScopeBean.jsp:
+		
+			When you run this .jsp page it attempts to get the bean being used in Video_19_setPageScopeBean.jsp.
+			But it cannot because Video_19_setPageScopeBean.jsp set the bean to be "page" scope,
+			hence the scope of the bean is limited to a single .jsp page.
+			
+			For that reason this won't work:
+			
+				<p>User name: <%= pageBean.getUserName() %></p>
+				<p>User ID: <%= pageBean.getUserID() %></p>			
+			
+			
+			In truth, I would think because the scope is set to "page" on both Video_19_getPageScopeBean.jsp
+			and Video_19_setPageScopeBean.jsp that the <jsp:useBean> tag instantiates an object of the Bean
+			class for both of these .jsp files; even though the beans are named the same, "pageBean", I 
+			would think the scopes make them unique. Could be wrong.
+			
+				
+	REQUEST SCOPE
+		
+			With request scope your bean is limited to the scope of one request from the browser. 
+			
+			I created the following to demonstrate this:
+			
+				* Video_19_setRequestScopeBean.jsp
+				* Video_19_getRequestScopeBean.jsp
+				
+				
+		[ ] Video_19_setRequestScopeBean.jsp:
+		
+			Add bean tag to allow this .jsp page to use the bean:
+			
+				<jsp:useBean id="requestBean" class="bean.Video_18_UserBean" scope="request"></jsp:useBean>		
+				
+			At one point in the video we demonstrate that a bean with request scope can be used directly on the page:
+			
+				<li>User name: <%= requestBean.getUserName() %></li>
+				<li>User ID: <%= requestBean.getUserID() %></li>			
+				
+			However, later in the video we use a redirect:
+			
+				response.sendRedirect("Video_19_getRequestScopeBean.jsp");
+				
+			...and then, after commenting that out, a forward:
+			
+				<jsp:forward page="Video_19_getRequestScopeBean.jsp" />
+				
+			...these take the user to Video_19_getRequestScopeBean.jsp so we no longer see the results of using
+			the bean data in Video_19_setRequestScopeBean.jsp.
+			
+			
+			What the redirect shows is that a bean with request scope can only survive one request. 
+			
+			What the forward shows is that a bean with request scope can survive to the next 'hop' because
+			only one request is performed. Re-said: a forward does not consume a request.
+									
+							
+							
+		[ ] Video_19_getRequestScopeBean.jsp:
+		
+			Add bean tag to allow this .jsp page to use the bean:
+			
+				<jsp:useBean id="requestBean" class="bean.Video_18_UserBean" scope="request"></jsp:useBean>
+				
+			This .jsp page attempts to show the properties of a bean:
+			
+				<p>User name: <%= requestBean.getUserName() %></p>
+				<p>User ID: <%= requestBean.getUserID() %></p>		
+				
+			
+			If Video_19_setRequestScopeBean.jsp uses a redirect the bean will not survive. 
+			
+				The browser's address bar reads:
+				
+					http://localhost:8080/JSP_Tutorial_3/Video_19_getRequestScopeBean.jsp
+					
+			If Video_19_setRequestScopeBean.jsp uses a forward the bean will survive.
+			
+				The browser's address bar reads:
+				
+					http://localhost:8080/JSP_Tutorial_3/Video_19_setRequestScopeBean.jsp
+					
+					Even though we went from Video_19_setRequestScopeBean.jsp to Video_19_getRequestScopeBean.jsp
+					the browser address still reads as being the first .jsp page. This is further evidence
+					that only one request was performed. 
+					
+				
+			Running Video_19_setRequestScopeBean.jsp causes one request to be sent to the Tomcat server.
+			Redirecting causes a second request to the Tomcat server.
+			Forwarding does not cause a second request.
+					
+					
+	APPLICATION SCOPE
+		
+			The scope of the bean will be your entire application. This scope DOES NOT rely on cookies. As long as your application server &
+			application runs then that bean will survive. This bean would survive multiple users, multiple browser sessions, etc. So big, 
+			global data would likely be found in a bean like this.
+		
+			I created the following to demonstrate this:
+			
+				* Video_19_setApplicationScopeBean.jsp
+				* Video_19_getApplicationScopeBean.jsp			
+			
+				
+		[ ] Video_19_setApplicationScopeBean.jsp
+		
+			Add bean tag to allow this .jsp page to use the bean:
+			
+				<jsp:useBean id="applicationBean" class="bean.Video_18_UserBean" scope="application"></jsp:useBean>
+		
+		
+		
+		[ ] Video_19_getApplicationScopeBean.jsp
+		
+			Add bean tag to allow this .jsp page to use the bean:
+		
+				<jsp:useBean id="applicationBean" class="bean.Video_18_UserBean" scope="application"></jsp:useBean>
+				
+													
+				
+			Try stopping Tomcat and running Video_19_getApplicationScopeBean.jsp --> the values are null.
+			
+			Now run Video_19_setApplicationScopeBean.jsp:
+			
+				Once the bean is set it lives on for the life of the application.
+					
+				
+	Summary:		
+		
+		Page scope: bean scoped to a single page. Will not survive redirect or a forward.
+		Request scope: bean scoped to a single request. Will not survive redirect; will survive a forward. 
+		Session scope: bean lives as long as the cookie holding its data lives.
+		Application scope: bean scoped to life of application. Does not require cookies.
+			
+			
+VIDEO #20 Notes:
+
+	Setting bean properties using parameters.		
+	
+		I created the following to demonstrate this:
+		
+			* Video_20_setBeanParameters.jsp
+			
+	[ ] Video_20_setBeanParameters.jsp:
+	
+		Run this .jsp, the resulting HTML page has a lot of notes on it.
+			
+			
+			
+	Couple of notes here about jsp:setProperty:		
+		
+	Hard code userName property:
+		<jsp:setProperty name="vid23" property="userName" value="String" />
+		
+			...you have to specify the property you want set.
+			...you have to specify the value you want it set to.
+		
+	Use URL parameter to set userName property:
+		<jsp:setProperty name="vid23" property="userName" param="key_from_URL" />
+		
+			...you have to specify the property you want to set.
+			...you have to specifically look for a parameter key in the URL.
+			...URL parameter key DOES NOT have match a Bean property, it can be totally unique.
+		
+	Use any URL parameters that match the userName property in our Bean:
+		<jsp:setProperty name="vid23" property="userName" />
+		
+			...you have to specify the property you want set.
+			...you DO NOT have to specifically look for a parameter key in the URL.
+		
+	Use any URL parameters that match any of the properties in our Bean:
+		<jsp:setProperty name="vid23" property="*" />
+		
+			...you DO NOT have to specify the property to set.
+			...you DO NOT have to specifically look for a parameter key in the URL.
+			
+			
+	(source for above notes: http://docs.oracle.com/javaee/1.3/tutorial/doc/JSPIntro11.html)	
+	
+	One last note: you can do the following with the instance fields if you so choose:
+	
+				class MyBean{
+					private String bar = "hello";
+					
+					getFoo(){ return bar; }
+					setFoo(String x){ this.bar = x; }				
+				}	
+		
+		...that is, you don't HAVE TO name the instance fields in accordance with your getters and setters, as long as
+		the getters and setters are "pointing" at what you want. That is, the JSP tag logic looks for getter and setter
+		names, not property names.
+		
+		This is why the instance field inside Video_18_UserBean.java was changed from "userID" to "id" but the getters
+		and setters were left named as they were. Still works :)
+				
+			
+			
+			
+		
+	What follows is me testing how to handle a URL string parameter trying to set a Bean property of type int.
+
+	This has nothing to do with the tutorial so can be skipped.
+		
+				
+		Note: The Video_18_UserBean has an int property. Setting that via a URL parameter requires a string that can be
+		converted into an int value. Because I have not specified how to handle if a string is given as a value. 
+		
+		For testing I put a String in the URL: 
+		
+			"?id="hello"
+		
+		and of course it crashed. 
+		
+		But it makes you wonder if the setUserId() is called implicitly. To test this I wrote some simple code in that setter and discovered
+		it IS implicitly called when setting a property. 
+		
+		However, if an incorrect type is sent to setUserId(int id) method then the resulting crash occurs before the code inside
+		setUserID(int userID) runs. 
+		
+		But that makes you think of another possibility: what if I write a second method that overloads the setter? Will the appropriate
+		method be called based on the parameter's type (ie, String, in this case)? 
+		
+		Answer: no. 
+		
+		The following did not work: (I removed this code from Video_18_UserBean.java so it doesn't confuse the previous tutorials)
+			
+				public void setUserID(int userID) {
+		
+					// Testing if this is implicitly called when a param is set
+					System.out.println("setUserID ran");			// It is implicitly called...when the correct argument is supplied.
+		
+					// This won't run because the problem of supplying a String as an argument occurs before we get here.
+					try{
+						this.userID = userID;
+					}catch (Exception e){
+						this.userID = 123456789;
+					}		
+				}	
+	
+				// This doesn't work either, same errors as thrown before. ...kind of glad this doesn't work, it feels very wonky.
+				public void setUserID(String id){
+					this.userID = 123456789;
+				}
+				
+				
+	Truth of the matter is, I will probably already have scrubbed the user-supplied parameter before actually attempting to
+	set it in the bean.
+		
+		
+END NOTES for JSP_Tutorial_3.

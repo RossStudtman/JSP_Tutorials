@@ -1,0 +1,456 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 27 through 32
+
+Project Name: JSP_Tutorial_5
+
+Video 27: The HttpSession object
+Video 28: URL rewriting: supporting sessions without cookies
+Video 29: The ServletContext object
+Video 30: Using web.xml <context-param>
+Video 31: Review of scoped objects: HttpServletRequest object, HttpSession object, ServletContext object
+Video 32: Cookies
+
+PRE-VIDEO Notes:
+
+	A .jsp page has the following objects available to it when it is created:
+		
+		request 		--> HttpServletRequest object
+		response 		--> HttpServletResponse object
+		out				--> PrintWriter object
+		session			--> HttpSession object
+		application 	--> ServletContext object
+		config			--> ServletConfig object
+		pageContext		--> "This encapsulates use of server-specific features like higher performance JspWriters."
+		page			--> "This is simply a synonym for 'this', and is used to call the methods defined by the translated servlet class."
+		Exception		--> Exception object - for accessing exception information within a .jsp 
+	
+		(source: http://www.tutorialspoint.com/jsp/jsp_implicit_objects.htm)
+		
+		
+	Second note: much of the results of the video tutorials are displayed in Video_27_displayPojo.jsp. Just want you to be
+	aware of that before you see it.
+
+
+VIDEO #27 Notes:
+
+	The Session Object
+	
+	The HttpSession object lives for the duration of a user session.
+	If an HttpSession object doesn't already exist, calling request.getSession() creates one. However, in a .jsp a session object is "always" available.
+	
+	Once an object has been created and added to a session object (via setAttribute) that object will be available throughout the website during the user's session.
+	
+	In this video:
+	
+		A) Display having access to the session object in a .jsp:
+		
+			<%= session.getMaxInactiveInterval() %>
+			
+		B) Attempt to get an object attached to the session object in doGet() (it won't be there because we haven't yet created such an object and attached it in the
+			.jsp, so instead create the object: "Video_27_POJO" will be the example of such an object) --> forward session object (which holds our POJO object) to
+			another .jsp page --> obtain the POJO object from the session object and display it. 
+	
+		I created the following to demonstrate this:
+			
+			* myObjects -- package
+			* controllers -- package					
+			* Video_27_Controller.java -- in controllers package --> a servlet
+			* Video_27_POJO.java -- in myObjects package --> a plain old java object with getters and setters.
+			* Video_27_displayPojo.jsp
+			* Video_27_session.jsp	
+			
+	Flow: Video_27_session --> controller --> Video_27_displayPojo
+			
+	[ ] Video_27_session.jsp:
+	
+			Use Expression tag <%= session.getMaxInactiveInterval() %>
+			
+			Create link to Video_27_displayPojo.jsp, goes through controller: <a href="/JSP_Tutorial_5/Video_27_Controller?director=showPojo">
+			
+			
+	[ ] Video_27_Controller.java:
+	
+			doGet():
+			
+				HttpSession session = request.getSession()
+				Determine if POJO is already attached to session object:				
+				
+						Video_27_POJO pojo = (Video_27_POJO)session.getAttribute("pojo");
+						if(pojo == null){
+							
+							[ ]	Create POJO
+							pojo = new Video_27_POJO(); 
+							
+							[ ] Assign pojo to session object
+							session.setAttribute("pojo", pojo);
+						}
+					
+					
+				Handle link: Video_27_session.jsp --> Video_27_displayPojo.jsp
+				
+					Use either:
+					
+						request.getRequestDispatcher("Video_27_displayPojo.jsp")... 
+						
+						or 
+						
+						getServletContext().getRequestDispatcher("Video_27_displayPojo.jsp")... .
+				
+	[ ] Video_27_displayPojo.jsp:
+	
+			Import Video_27_POJO.java: <%@ page import"myObjects.Video_27_POJO" %>
+			
+			In scriptlet create Video_27_POJO: <% Video_27_POJO pojo = (Video_27_POJO)session.getAttribute("pojo"); %>
+			
+			Use the Video_27_POJO object, housed within session object: <%= pojo.getSomeProperty() %>
+			
+				Note: Could have used this:
+				
+					<%= ((myObjects.Video_27_POJO)session.getAttribute("pojo")).getInfo() %>
+					
+				...which I did originally for Video #27, so it works; but I changed it for Video #28 to what is in there now.
+					
+	
+
+VIDEO #28 Notes:
+
+	URL Rewriting: supporting sessions without cookies
+	
+	I created the following to demonstrate this:
+	
+		* Video_28_displayPojo.jsp
+		
+	FLOW: Video_27_session: click link --> controller --> Video_27_displayPojo: click link --> Video_28_displayPojo
+		
+	[ ] Video_27_displayPojo.jsp:
+	
+			add link to Video_28_displayPojo.jsp 
+			
+					Link goes through controller:
+			
+					<a href="/JSP_Tutorial_5/Video_27_Controller?director=vid28"
+				
+			Put in a check to see if there is a POJO stored in session, if a POJO has not been stored inside the
+			session object then when we attempt to get our POJO	out of the session object it will be null.
+			This might occur if user has turned off cookies and then clicks a link --> no cookie will be created
+			to store the session object when clicking between Video_27_displayPojo and Video_28_displayPojo
+				
+				So, user has turned off cookies --> clicked the link in Video_27_session --> went to controller 
+				--> controller made the POJO and attached it to the session object --> sent user to Video_27_displayPojo.jsp
+				--> but the session object didn't survive because cookies were turned off.
+				
+				So we could do the following "Hack Fix" but this does not solve the problem, it merely allows the
+				webpage to do something when cookies are turned off:
+					
+					<% 
+						Video_27_POJO pojo = (Video_27_POJO)session.getAttribute("pojo");	
+					%>
+					
+					<%= pojo == null ? "POJO object not in session object" : pojo.getInfo() %>
+					
+					Video 27 used to do this: 
+							
+						<%= pojo.getInfo() %>
+						
+					But now that cookies are turned off we've changed it to detect if the POJO is missing:
+						
+						<%= pojo == null ? "POJO object not in session object" : pojo.getInfo() %>
+				
+				
+				
+				The proper fix if cookies are disabled to allow session info to persist between pages by putting session ID's into URLs.
+				
+				Here is the style of link that WILL NOT WORK with cookies turned off:
+				
+					<a href="/JSP_Tutorial_5/Video_27_Controller?director=vid28">
+					
+					
+				Here is the style of link that WILL WORK with cookies turned off:
+				
+					<a href="<%= response.encodeURL(request.getContextPath() + "/Video_27_Controller?director=vid28") %>
+					
+			
+					To encode the URL: 
+					
+						response.encodeUrl("completePath_minusTheDomain")
+						
+							Technique to get context path of URL: request.getContextPath()
+							
+								ie, this returns "/JSP_Tutorial_5" <-- the context path.
+							
+						
+						Combining context path + file location:
+					
+							<%= response.encodeUrl(request.getContextPath() + "file location") %>
+							
+						
+						So, again, the link that works between Video_27_displayPojo and Video_28_displayPojo when cookies are turned off is:
+					
+						<a href="<%= response.encodeUrl(request.getContextPath() + "/Video_27_Controller?director=vid28") %>">link words</a>
+						
+		
+	[ ] Video_28_displayPojo.jsp:
+	
+			First: duplicate Video_27_displayPojo
+			
+			Second, apply same "hack fix" as above --> but with the new link the POJO should be preserved when cookies are turned off!
+			
+				
+
+VIDEO #29 Notes:
+
+	The ServletContext Object
+	
+	All users across the application could have access to a ServletContext object.
+	
+	What we've investigated so far:
+	
+		Beans with application scope --> Set the bean once, lives on, has a bit of persistence to it (life of application).
+		
+		Session object --> lives during user's session. You could stuff a session bean into a session object for transport.
+		
+	
+	Results shown in Video_27_displayPojo.jsp
+	
+	[ ] Video_27_Controller.java
+	
+		doGet():
+		
+			Get handle to ServletContext object:
+			
+				ServletContext context = getServletContext();
+				
+					You could use 'context' for retrieving start up parameters from the application server's xml.
+					You can use it for login.
+					You can use it for "all kinds of stuff."
+					
+			Get Attribute:
+			
+				Maybe we want to document each request user's make to some URL via doGet:
+				
+					Integer hitCounterForSomeURL = (Integer)context.getAttribute("hitCounterForSomeURL");
+		
+					if(hitCounterForSomeURL == null){
+					
+						hitCounterForSomeURL = 0;
+						
+					}else{
+						hitCounterForSomeURL++;
+					}
+					
+					context.setAttribute("hitCounterForSomeURL", hitCounterForSomeURL);
+					
+			Display attribute:
+			
+				PrintWriter out = response.getWriter();
+				out.println("<p>hit counter value: " + hitCounterForSomeURL + "</p>");
+				
+		
+		Now if you put the address for your servlet into a browswer, the doGet is invoked and hitCounterForSomeURL
+		is incremented. If you open another browser and go to the same address for your servlet the 
+		hitCounterForSomeURL continues to be incremented. 
+		
+			Result: semi-persistent values across users*.
+			
+				*Restarting the server will wipe out the data unless it has been saved in a persistent way.
+				
+				
+		I wrote this code into Video_27_Controller and it is being displayed in	Video_27_displayPojo,
+		that is where the if-else logic inside doGet defaults to if there is no "director" parameter 
+		supplied. So look to Video_27_displayPojo.jsp for plumbing.
+		
+			Note: I used the "application" variable available inside the .jsp to get access to the ServletContext
+			object. See top of this page for all objects that are implicitly available to .jsp pages.
+			
+			
+
+VIDEO #30 Notes:
+
+	Get Parameters from web.xml
+	
+		You could store usernames and their passwords in web.xml. (why you'd want to I have no idea)
+		
+		Goal: retrieve a parameter from web.xml by using the ServletContext object "created" in	Video #29.
+		
+		[ ] WebContent/WEB-INF/web.xml:
+		
+			Open web.xml and view it in "design" mode:
+			
+				select the root "web-app" --> R-click --> "Add Child" --> "context-param - login-config"
+				--> "context-param": value gets added to the design mode list on the left.
+				
+				Select the newly added "context-param":
+				
+					Note the "param-name" and "param-value" sub tags.
+					
+					John opened web.xml into a text editor to perform modifications:
+					
+					 	
+							<context-param>
+								<param-name>adminname</param-name>
+								<param-value>Ross	</param-value>
+							</context-param>		
+			
+			
+		[ ] Video_27_Controller.java
+		
+			doGet():
+			
+				Retrieve the param value using the param-name (which is a key, basically, for the value):
+					
+					ServletContext context = getServletContext();
+			
+					String admin = context.getInitParameter("adminname"); 
+					
+					out.printlne("<p>Admin name is: " + admin + "</p>");
+			
+			
+			
+	Extra Notes:
+	
+		In preparing to code this video I figured I would do something like I did in Video #29 where I used the 'application' variable,
+		which is a ServletContext object, inside the .jsp page to get at attributes added to the ServletContext object.	But at the top 
+		of this VideoNotes_5.txt I had documented all the implicit objects available to a .jsp page and noticed there was a "config" 
+		variable for a ServletConfig object. This "config" object also has a "getInitParameter()" method. So I wondered	what the difference was between them...
+		
+		A little research later and here's a good answer:
+			(source:  http://www.coderanch.com/t/166626/java-Web-Component-SCWCD/certification/ServletContext-ServletConfig):
+		
+			Ken Krebs: 
+			
+					"In other words:
+			
+					The ServletConfig parameters are specified for a particular servlet and are unknown to
+					other servlets.
+					
+					The ServletContext parameters are specified for an entire application outside of any
+					particular servlet and are available to all the servlets within that application."
+					
+				
+			The ServletConfig is called once, during the init() of the servlet's lifecylce. 
+			
+			ServletConfig init parameters are found in the <init-param> of web.xml.
+				There is one ServletConfig per servlet.
+				
+			ServletContext init parameters are found in the <context-param> of the web.xml.
+				There is one ServletContext per JVM.
+			
+			Oracle -- Actually a pretty understandable page from an official source:
+				https://blogs.oracle.com/TangHao/entry/summary_for_the_difference_between
+				
+				
+		So John's way of doing this lesson truly makes the data available to the whole application, not
+		just this servlet.
+		
+	
+	And Finally, to code this video I added to web.xml as depicted above, then added plumbing to 
+	Video_27_displayPojo.jsp:
+	
+		Admin name is: <%= application.getInitParameter("adminName") %>
+			
+				
+				
+VIDEO #31 Notes:
+			
+	Review of Scoped Objects
+	
+	JSP scopes: page, request, application, and session.
+	
+	Servlet equivalents:
+	
+			Page Scope:
+				Basically local variables inside the servlet would serve this purpose. 
+				Though nobody is going to talk about it like that.
+		
+			Request Scope --> Request Object
+				request.setAttribute(string-key, Object);
+				Object x = (Object)request.getAttribute(string-key);
+
+			Session Scope --> Session Object
+				HttpSession session = request.getSession();
+				session.setAttribute(string-key, Object);
+				Object x = (Object)session.getAttribute(string-key);
+				
+			Application Scope --> ServletContext Object
+				ServletContext context = getServletContext();
+				context.setAttribute(string-key, Object);
+				Object x = (Object)context.getAttribute(string-key);
+				
+		
+		Video_27_Controller.java's doGet() uses both the HttpSession & ServletContext objects to set and get
+		attributes. 
+			
+			
+			
+VIDEO #32 Notes:
+
+	Cookies - persist some data between user sessions.
+	
+		When the server responds to a doGet or a doPost the response HTTP packet contains a header, that header
+		can contain data for how to set a cookie.
+		
+		When a client browser requests data from the server the HTTP packet it sends also contains a header,
+		that header has cookie information in it.
+		
+			Does, then, every request from the server send cookies, too? Yes, according to this StackOverflow answer:
+				http://stackoverflow.com/questions/1336126/does-every-web-request-send-the-browser-cookies
+				
+		
+		
+		[ ] Video_27_Controller.java:
+		
+			doGet():
+		
+				Cookie will not be set if you attempt to set the cookie after a redirect. 
+			
+				If this:
+				
+						request.getRequestDispatcher(director).forward(request, response);						
+						
+				Comes before this:
+				
+						Cookie cookie = new Cookie("key", "value");
+						response.addCookie(cookie);
+						
+				...then the response object is already forwarded to the Video_27_displayPolo.jsp, then adding a cookie
+				to the response object has no effect because the response object isn't used a second time later on. So when
+				the doGet() method completes the response variable is wiped out.
+				
+				...I learned this lesson because I have been adding these lessons' code into Video_27_Controller, where I 
+				naturally put the cookie making code below all the previous code...then was mystified by two things:
+				
+					A) Why was a JSESSIONID showing up as a cookie when John's video didn't have one?
+					B) Why wasn't my cookie that I was making showing up?
+					
+				And the answers to those were:
+				
+					A) Because you made a session object and set an attribute on it. Apparently that creates a session cookie.
+					B) Because the response object was already forwarded to the page you're trying to see the cookies on.
+					
+					
+			Create cookie object:
+			
+				Cookie cookie = new Cookie(String name, String value);
+	
+			Modify response header:
+			
+				response.addCookie(cookie);
+				
+			View cookie contents:
+			
+				See plumbing inside Video_27_displayPojo.jsp.
+				
+			Increase the shelf life of the cookie:
+			
+				cookie.setMaxAge(int seconds);
+			
+			
+END JSP_Tutorial_5 NOTES.
+			
+			
+			
+			
+	

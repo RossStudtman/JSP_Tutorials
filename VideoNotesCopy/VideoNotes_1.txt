@@ -1,0 +1,367 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 3 through 7
+
+Video #3: Creating a servlet
+Video #4: Creating a JSP page
+Video #5: Understanding the web.xml file
+Video #6: Deploying servlet to local Tomcat server.
+Video #7: Deploying to internet.
+
+
+VIDEO #3 Notes:
+
+	Create a servlet.
+
+	I created the following to demonstrate this:
+	
+		* gui -- a package
+		* Video_3_servlet.java -- inside gui package		
+		
+	[ ] Video_3_servlet.java
+	
+		Notice the doGet() and doPost() methods receive two arguments:
+		
+			HttpServletRequest request, HttpServletResponse response
+			
+			We can use these objects for a variety of things. Such as creating a PrintWriter object.			
+		
+		
+		doGet():
+		
+			Create a PrintWriter object:
+		
+				PrintWriter out = response.getWriter();
+				
+			
+			Create some output so when this servlet is run we see a result:			
+		
+				out.println("<html>");
+				out.println("<h1>Greetings from the doGET method!!</h1>");
+				out.println("</html>");		
+		
+
+		Run the servlet:
+		
+			Select the servlet's tab in Eclipse, click the green run button in Eclipse's toolbar.
+			
+			First time running it you'll get a dialog pop up:
+			
+				Choose existing server radio button;
+				Select Tomcat v7.0 Server at localhost (it's State says "Started");
+				Always use this server when running this project check box;
+				
+				Another dialog may pop up: "Server: The server may need to be restarted. Do you want to..."
+				
+					Restart server radio button;
+					Remember my decision check box;
+			
+			Notice the address bar in the browser:
+			
+				http://localhost:8080/JSP_Tutorial_1/Video_3_servlet
+				
+				http://localhost:8080 	--> domain
+				JSP_Tutorial_1 			--> context root
+				Video_3_servlet			--> servlet
+				
+			If you open another browser and paste in that address you'll get the same result.
+			That is, this *is* the URL address for reaching this servlet.
+
+
+
+VIDEO #4 Notes:
+
+	Creating a .jsp file.
+	
+	John notes that it is not "normal" to spit out HTML directly from the java program as we did
+	in Video #3. Normally the HTML is found inside a JSP file. JSPs are where your HTML goes.
+
+	In the JSP_Tutorial_1 project folder is the WebContent folder and this is where .jsp files
+	should go.
+	
+	I created the following for this tutorial:
+	
+		* Video_4_htmlFile.html
+		* Video_4_jspFile.jsp
+
+	[ ] Video_4_htmlFile.html
+
+		This is a regular, plain Jane HTML file. 
+		
+		R-click WebContent -> New -> HTML: name it.
+					
+		Run your HTML file:
+		
+			Select the tab in Eclipse, click green run button.
+			
+			Admire your HTML in the browser.
+			
+	[ ] Video_4_jspFile.jsp
+	
+		R-click WebContent -> New -> JSP File: name it.
+					
+		A JSP page is an HTML page into which you can embed java code. JSPs are compiled into servlets 
+		by the application server (Tomcat). 
+		
+		This is an expression tag:
+		
+			<%=   stuff goes here  %>
+			
+			The expression tag will write directly to the HTML page. Put strings in here.
+			
+			For example, this:
+			
+				<%= new java.util.Date() %> 
+				
+			will invoke the Date object's toString() and put the date string directly in the HTML.
+			
+			
+			Note: Eclipse may automatically import Util.Date at the top	of the jsp: 
+			
+				<%@page import="java.util.Date"%>
+			
+		This is a scriptlet tag:
+			
+			<%  java code here  %>
+				
+			A scriptlet lets you run java code inside it.
+			
+			An example of using a scriptlet:
+			
+				The scriptlet:
+				
+					<%
+						Date today = new Date();
+						String todayText = "Today is: " + today.toString();
+						
+						out.println("<ul><li>'out' is a JspWriter object.</li></ul>");					
+					%>
+				
+				Use variable that is inside the scriptlet:
+				
+					<p>This paragraph is outside the scriptlet but we can use stuff from inside the scriptlet:</p>		
+					<ul>
+						<li><%= todayText %></li>
+					</ul>			
+			
+			
+			Note: In Eclipse use ctrl+space to show pre-defined variables of a scriptlet.
+			
+			
+		Run your .jsp file		
+
+
+VIDEO #5 Notes:
+
+	Understanding the web.xml file.
+
+	When creating a new Dynamic Web Project there is a choice to "Generate Web.xml deployment descriptor".
+  	John suggests creating this because the annotation in the servlet, @WebServlet("/Video_3_servlet"), 
+  	may not be recognized by some server applications. So he prefers to use the Web.xml file. Additionally,
+  	later on we'll have a need to manipulate the web.xml file. 
+
+	*** Instead of making a new project I chose to google how to add a Web.xml if my project doesn't contain one:
+			
+		source:
+		
+			http://crunchify.com/eclipse-missing-web-xml-file-how-can-i-create-web-xml-in-eclipse/
+			
+		Procedure:			
+		
+				R-click project --> Java EE Tools --> Generate Deployment Descriptor Stub
+				
+				This creates "web.xml" file in WEB-INF
+
+		I created the following for this video:
+		
+			* Video_5_servlet.java
+			* index.jsp
+			* myLoginPage.jsp
+			
+	[ ] Video_5_servlet.java
+	
+		After creating this file look at the line immediately above the class declaration and you'll 
+		see the following:
+		
+			@WebServlet("/Video_5_servlet")
+			
+			Comment that out:
+		
+			//@WebServlet("/Video_5_servlet")
+			
+			We don't want that active. Commenting that out will give a warning that there's an import that isn't
+			used, ctrl-shft-o to organize imports. 
+		
+
+		If we run this servlet now we'll get a 404 HTTP status error: The requested resource is not available.
+		This is because we now need to add a reference to this servlet into the web.xml file.
+		
+
+	[ ] web.xml
+	
+		Located in WebContent/WEB-INF/web.xml
+		
+		Map a URL address to my servlet:
+				
+			In web.xml create <servlet> & <servlet-mapping> tags for the Video_5_servlet 
+			located in the "gui" package:
+				
+				  <servlet>
+				    <description></description>
+				    <display-name>NameSeenInAnAdminTool_Maybe</display-name>
+				    <servlet-name>kitten</servlet-name>
+				    <servlet-class>gui.Video_5_servlet</servlet-class>
+				  </servlet>
+				  
+				  <servlet-mapping>
+				    <servlet-name>kitten</servlet-name>
+				    <url-pattern>/one</url-pattern>
+				  </servlet-mapping>
+				  
+				  
+		Names given to <url-pattern> can basically be whatever you want, but whatever name you give 
+		here is the URL address that points to this servlet. 
+		
+		The <servlet-name> can also be whatever you want, as long as it is unique in the web.xml file.
+		All it does is link the <servlet> and <servlet-mapping> tags, so the program knows what goes
+		with what.
+				  
+				  
+	[ ] Video_5_servlet.java
+	
+		Now run this servlet.
+		
+		Notice the address bar in the browser:
+		
+			http://localhost:8080/JSP_Tutorial_1/one
+			
+		Now if you type this into the address bar:
+		
+			http://localhost:8080/JSP_Tutorial_1/Video_5_servlet
+			
+		...it won't work, the 404 "The requested resource is not available." is reported.
+		So now, as far as the server is concerned, the URL address for the Video_5_servlet is
+		http://localhost:8080/JSP_Tutorial_1/one
+		
+		
+	[ ] myLoginPage.jsp
+	
+		Very simple .jsp.
+		
+		Make a web.xml entry for this page:
+		
+			  <servlet>
+			    <description></description>
+			    <display-name></display-name>
+			    <servlet-name>MyLoginPage</servlet-name>
+			    <jsp-file>/myLoginPage.jsp</jsp-file>
+			  </servlet>
+			  <servlet-mapping>
+			    <servlet-name>MyLoginPage</servlet-name>
+			    <url-pattern>/two</url-pattern>
+			  </servlet-mapping>		
+			  
+			 
+		Two things to note:
+		
+			1) 	in the <servlet> tag it isn't a <servlet-class> but rather a <jsp-file>, and
+				it requires the ".jsp" extension.
+				
+			2)	URL address for this page is: http://localhost:8080/JSP_Tutorial_1/two
+
+				
+	[ ] index.jsp
+	
+		R-click WebContent --> New --> JSP File --> name it.
+		
+		This was created to demonstrate that if you have one of these files then a address that
+		only has the context root will go here:
+		
+			This:
+			
+				http://localhost:8080/JSP_Tutorial_1/
+				
+			Goes to the index.jsp.
+			
+			Why? Because in the web.xml there is a welcome file list:
+			
+				  <welcome-file-list>
+				    <welcome-file>index.html</welcome-file>
+				    <welcome-file>index.htm</welcome-file>
+				    <welcome-file>index.jsp</welcome-file>
+				    <welcome-file>default.html</welcome-file>
+				    <welcome-file>default.htm</welcome-file>
+				    <welcome-file>default.jsp</welcome-file>
+				  </welcome-file-list>				
+				  
+			...and index.jsp is on it. (this list was automatically created and represents popular names
+			for HTML pages that "direct" users to other pages within the web site.
+			
+			
+		Run the context root:
+		
+			R-click the project folder, JSP_Tutorial_1, --> Run As --> Run On Server
+			
+			Doing that will make a call to the Tomcat server using only the context root for the URL.
+
+
+	NOTE: There's a small summary section on this topic in JSP_Tutorial_8's notes, right at the top.
+
+
+
+VIDEO #6 Notes:
+
+ 	Deploying the servlet to my local Tomcat server.
+ 	
+ 		...which isn't much different than what Eclipse was doing, says John, but it is good for debugging.
+ 		
+ 		
+ 		A WAR file is like a .jar file for deploying onto a server application (like Tomcat).
+ 
+ 		Export program as a WAR file:
+ 
+ 		- R-click project --> export --> WAR file --> save somewhere.
+ 		- Paste WAR file into Tomcat 7.0/webapps
+ 		- Stop Eclipse version of Tomcat.
+ 		- Start Tomcat service: use "Monitor Tomcat" program to do that.
+ 		- Open browser and type into address bar:
+ 	
+ 		Address:																Result
+ 
+ 		server: 				http://localhost:8080							TomCat web page
+ 		context root: 			http://localhost:8080/JSP_Tutorial_1			contents of index.jsp
+ 		Video_5_servlet.java: 	http://localhost:8080/JSP_Tutorial_1/one		what was written in the doGet() method
+ 		myLoginPage.jsp: 		http://localhost:8080/JSP_Tutorial_1/two		contents of MyLoginPage.jsp
+ 
+ 			Context root is probably the name of your project (though you could have changed that when
+ 			you first constructed the project using the wizard).
+ 
+ 	NOTE: when you paste your WAR file into TomCat's webapps folder and then run Tomcat, Tomcat then makes 
+ 	a folder named the same thing as your WAR file. So if you want to delete the WAR file then also delete 
+ 	the folder generated by Tomcat that has	the same name as the WAR file.
+ 	
+ 
+ VIDEO #7 Notes:
+ 
+ 	I used Cloudbees, like the video. I researched using other sites for hosting java applications but I ran into
+ 	a world I know very little about and the jargon threw me for a bit of a loop. 
+ 	
+ 	Cloudbees notes:
+ 	
+ 		After having set up an account,
+ 		
+ 		Applications --> click "Add Application" tab at the top --> name it, Cloudbees builds a shell or something
+ 		for an application --> look for the label mid-page that says "Upload Application" --> click "Choose File" 
+ 		--> select your WAR file --> and that's about it.
+ 		
+ 		Click your hyperlink to your website found near hte top of the page --> your website opens in a new
+ 		browser --> try appending some of the url-names given to your files in web.xml into the browser.
+ 		
+ 		*** Admire that you have uploaded to the world wide internety thingymajig an application/website that you
+ 		have created. And it works! 
+ 		
+ 		- Now celebrate.
+ 	
+ THE END of JSP_Tutorial_1.
