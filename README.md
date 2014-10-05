@@ -1,7 +1,7 @@
 JSP Tutorials
 ===========
 
-John Purcell's [courses] are some of the best I've found. As a former teacher, I like to enhance my own learning by creating parallel tutorials. Here are the notes I created for John's "[Servlets and JSPs: Creating Web Applications With Java]."
+John Purcell's [courses] are some of the best I've found. As a former teacher, I like to enhance my own learning by creating parallel tutorials. Here are the notes, *with working code*, I created for John's "[Servlets and JSPs: Creating Web Applications With Java]."
 
 
 
