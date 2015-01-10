@@ -1,0 +1,575 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 8 through 14
+
+Video #08: Add custom classes to JSPs
+Video #09: Retrieve parameters from URL
+Video #10: Using scriptlets to create loops and conditionals.
+Video #11: How to include other files into JSPs (eg, other JSPs)
+Video #12: Forwarding & Redirecting
+Video #13: Declaration tag
+Video #14: Summary of tags: Directive, Expression, Comment, Declaration, Scriptlet
+
+
+VIDEO #8 Notes:
+
+	How to add your own custom classes to .jsp files
+	
+		I created the following to demonstrate this:
+		
+			* index.jsp
+			* myClasses -- a package
+			* RossClass.java -- inside myClasses package
+			
+	[ ] RossClass.java
+	
+		A simple class for demonstrating that .jsp page imports can import my own classes.
+			
+	[ ] index.jsp
+	
+		Add a page directive to import a custom class:
+		
+			<%@page import="java.util.Date, myClasses.*"%>
+			
+			Generic syntax:
+			
+				<%@page import="Class_one, Class_two, Class_etc" %>
+			
+		
+		Use a scriptlet and make a new custom object:
+		
+			<%
+				RossClass rossClass = new RossClass("Firefly");
+			
+				out.println("<p>You just imported your own class! And can access it, too!</p>");
+				out.println("<p>Use a RossClass method: " + rossClass.getStringData() + "</p>");
+				out.println("<p>Run a method from the class just because: " + rossClass.foo() + "</p>");			
+			%>		
+
+	
+VIDEO #9 Notes:
+
+	How to get parameters from the URL into servlets and .jsp files.
+	
+	
+		A URL example: 
+		
+			http://localhost:8080/JSP_Tutorial_2/index.jsp
+	
+		A URL example with parameters, i.e., key-value pairs:
+		
+			http://localhost:8080/JSP_Tutorial_2/index.jsp?key1=value1&key2=value2
+		
+		
+		I created the following to demonstrate this:
+			
+			* Video_9_MyAwesomeServlet.java
+			* Video_9_getParameters.jsp
+				
+			
+	[ ] Video_9_MyAwesomeServlet.java
+	
+		Goal: Get parameters into a servlet.
+	
+		doGet():
+		
+			Obtain parameter values for parameter keys:
+			
+				String key1 = request.getParameter("key1");
+				String key2 = request.getParameter("key2");
+			
+		
+			Personal learning objective: instantiate a RossClass object using a parameter:
+			
+				RossClass myCustomObject = new RossClass(key1);
+				
+				Powerful idea, lots of implications :)
+				
+				Use the object:
+				
+					PrintWriter out = response.getWriter();
+					out.println("<p>Use a method in RossClass: " + myCustomObject.foo() + "</p>");
+			
+	[ ] Video_9_getParameters.jsp
+	
+		Goal: get parameters into a .jsp page.
+		
+		Note: a .jsp is compiled into a servlet. Yes, wow. Anyway, this means we have access to
+		the same things you would find in a servlet's doGet(). Hence, the code to get parameters
+		is basically the same as was used in the servlet:
+		
+				String key1 = request.getParameter("key1");
+				String key2 = request.getParameter("key2");
+	
+		Personal learning objective: instantiate a RossClass object using a parameter:
+		
+			1) import the RossClass:
+			
+				<%@page import="myClasses.RossClass" %>
+				
+			2) instantiate the object:
+			
+				RossClass myCustomObject = new RossClass(key1);
+				
+			3) use the object:
+			
+				out.println("<p>Use a method in RossClass: " + myCustomObject.foo() + "</p>");
+				
+			
+			
+VIDEO #10 Notes:
+
+	How to use scriptlets to manipulate HTML tags using for-loops and if-conditionals.
+	
+	I created the following to demonstrate this:
+		
+		* Video_10_scriptletManipulations.jsp	
+		
+	[ ] Video_10_scriptletManipulations.jsp
+	
+		Use a for-loop. Open the loop in one scriplet, close it in another:
+		
+				<%
+					for(int i = 0; i < 5; i++){
+				%>		
+				
+						<p>Looped HTML</p>
+					
+				<%
+					} 
+				%>	
+			
+			
+			Result: 5 HTML <p> are created.
+			
+		
+		Personal learning objective: create an ordered list using that technique:			
+			
+				<ol>
+				
+					<%
+						for(int i = 0; i < 5; i++){	
+					%>				
+	
+						<li>This is iteration number: <%= i %></li>					
+					
+					<% 	
+						}
+					 %>
+				
+				</ol>			
+		
+		
+			Result: HTML ordered list with 5 <li>
+		
+			This same concept could be used to generate rows of a HTML <table>.
+		
+		Use an if-condition to determine if some HTML should be written:
+		
+				<%
+					String key1 = request.getParameter("key1");
+						
+					if(key1 == null){
+				%>
+				
+						<!-- If key1 is null write this HTML -->	
+						<h2>Key1 parameter was not supplied!</h2>
+				
+				<% 
+					}else {
+				%>
+				
+						<!-- If key1 has value then write this HTML -->
+						<p>The value of key1 is: <%= key1 %></p>
+				
+				<%
+					}
+				%>			
+			
+		
+		
+VIDEO #11 Notes:
+
+	How to include other files within a .jsp file (like other .jsp files).
+	
+		I created the following files to demonstrate this:
+		
+			* Video_11_AddFiles --> a folder in WebContent. Holds files created for Video #11.
+			* Video_11_addFilesToMe.jsp							
+			* Vid_11_Url_Key_Map.java 					--> A map of URL keys and values.
+			* fileOne.txt -- simple text 				--> added to WebContent/Video_11_AddFiles folder
+			* fileTwo.txt -- contains some simple HTML 	--> added to WebContent/Video_11_AddFiles folder
+			* fileThree.txt -- more simple text 		--> added to WebContent/Video_11_AddFiles folder
+			* hourlyWeather.txt -- simple text			--> added to WebContent/Video_11_AddFiles folder	
+			* jspFragment.jsp -- java code				--> added to WebContent/Video_11_AddFiles folder
+			* sunnyWeather.html -- simple HTML			--> added to WebContent/Video_11_AddFiles folder
+			* rainyWeather.html -- simple HTML			--> added to WebContent/Video_11_AddFiles folder
+			
+		
+	[ ] Vid_11_Url_Key_Map.java 
+	
+		public final class Vid_11_Url_Key_Map {
+			/**
+			 * A URL key map.
+			 */
+			public static final Map<String, String> map = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+			
+			// statically load map
+			static{
+				// Sunny Weather
+				map.put("sunny", "Video_11_AddFiles/sunnyWeather.html");
+				
+				// Rainy Weather
+				map.put("rainy", "Video_11_AddFiles/rainyWeather.html");
+			}
+		}	
+	
+	
+			
+	[ ] jspFragment.jsp -- simple java code inside a scriptlet
+	
+		Contains no HTML, just a scriptlet with java code inside it.
+	
+		<% 
+			String variableInsideJSPFragment = "<h1>Hello from inside jspFragment!</h1>";		
+		%>
+			
+	[ ] Video_11_addFilesToMe.jsp
+	
+		Use an include directive: 
+		
+				<%@include file="Video_11_AddFiles/fileOne.txt" %>
+				<%@include file="Video_11_AddFiles/fileTwo.txt" %>
+				<%@include file="Video_11_AddFiles/fileThree.txt" %>
+				
+			Result: content of those files are added exactly where they are found in the .jsp page.
+			
+				Notes: 
+				
+					The line breaks in fileOne.txt are not preserved.
+					
+					The HTML of fileThree.text was inserted.				
+			
+			This style of adding content should only be used with content that doesn't change often.
+			Why? You don't want to force your application server to recompile your .jsp page very
+			often.
+			
+			Hypothesis: you could create a header.txt and footer.txt that would contain common HTML
+			to be used in several .jsp pages.
+			
+		Use a <jsp:include> tag:
+		
+				<jsp:include page="Video_11_AddFiles/hourlyWeather.txt" />
+				
+				Note: you'll have to pretend hourlyWeather.txt is a file that changes hourly.
+			
+			Result: content of that file is added exactly where it is found in the .jsp page.
+			
+			This style of adding content can be used with more dynamic data; this style makes
+			a separate call to the server to load it.
+			
+		Use a <jsp:include> tag to load a file that only has java code inside a scriptlet:
+		
+			<%@ include file="Video_11_AddFiles/jspFragment.jsp" %>
+			
+			Access the java code variable in that file:
+			
+				<%= variableInsideJSPFragment %>
+		
+				Result: variable inserted into .jsp page.
+				
+				Hypothesis: you can use this style to write java code you might want to put in
+				many .jsp pages and include it using this technique.
+				
+			This technique is basically directly pasting the java code into the .jsp at this location.
+				
+
+		DYNAMICALLY DETERMINE WHICH FILE TO LOAD at runtime using a URL parameter:
+			
+			Use the Vid_11_Url_Key_Map we created:
+			
+				<h1>Dynamical load pages based on URL keys:</h1>
+				
+				<!-- Import class created for these algorithms. -->
+				<%@page import="myClasses.Vid_11_Url_Key_Map" %>
+				<%
+					// Get the parameter.
+					String whereToGoUrl = request.getParameter("weather");
+						
+					if(whereToGoUrl == null || !Vid_11_Url_Key_Map.map.containsKey(whereToGoUrl) ){
+				%>
+						<p>URL 'weather' key missing or value malformed.</p>
+				<%				
+					}else{
+						whereToGoUrl = Vid_11_Url_Key_Map.map.get(whereToGoUrl);
+				%>
+						<jsp:include page="<%= whereToGoUrl %>" />
+				<%
+					}	
+				%>	
+			
+						
+			Result:
+			
+				sunnyWeather.html and rainyWeather.html are added to the .jsp page dynamically, depending on
+				what URL parameter is given to the .jsp page.
+				
+
+					
+VIDEO #12 Notes:
+
+	Forwarding & Redirecting
+	
+	How to have the user visit one .jsp page but see another. This also works for servlets: user might arrive at a servlet and the
+	servlet decides which .jsp to show.
+	
+	I created the following to demonstrate this:
+		
+			* Video_12_forward.jsp 
+			* Video_12_redirect.jsp
+			
+	[ ] Video_12_forward.jsp
+	
+		Forward user to another .jsp page using a JSP forward tag:
+		
+			<jsp:forward page="index.jsp" /> 
+		
+			JSP 'forward' is similar to JSP 'include' but where 'include' is like "pasting" directly into the .jsp page, the 'forward'
+			replaces the contents of this page completely.
+			
+			Run Video_12_forward.jsp:
+				
+				Notice the browser address says:
+				
+					http://localhost:8080/JSP_Tutorial_2/Video_12_forward.jsp 
+				
+				...but we are forwarding to the index.jsp and the contents of index.jsp are shown, 
+				not the contents of Video_12_forward.jsp.			
+				
+				
+		Forward user to another .jsp page using request object inside a scriptlet:
+		
+				<%
+					request.getRequestDispatcher("index.jsp").forward(request, response);		
+				%>
+			
+			Of course the "request.getRequestDispatcher().forward()" also works in a servlet.
+			
+		
+		Hypothesis: we can use this technique in a servlet to direct users to different .jsp pages.
+		
+			
+	[ ] Video_12_redirect.jsp
+	
+		Redirect user to another .jsp page using response object inside a scriptlet:
+		
+				<%	
+				response.sendRedirect("index.jsp");
+				%>			
+
+			Notice the browser address says:
+			
+				http://localhost:8080/JSP_Tutorial_2/index.jsp
+		
+	
+	A resource about the difference between a forward and a redirect:
+	
+		http://stackoverflow.com/questions/6068891/difference-between-jsp-forward-and-redirect
+		http://www.javapractices.com/topic/TopicAction.do?Id=181
+		
+		Basic summary: a forward happens at the server; a redirect makes the browser make another request to the new URL.
+		Thus, in the address bar of the browser, a forward will not show a change in address, a redirect will show a change.
+		
+		John points out that a redirect is often used when making a payment online, when the payment goes through then
+		user is redirected to another page; this makes it harder for the user to "go back" to the previous page.
+		
+		
+	
+	Try a test:
+	
+		Put the following directly into the address bar:
+		
+			http://localhost:8080/JSP_Tutorial_2/Video_12_redirect.jsp
+			
+		Result: 
+			
+			Immediately redirected to index.jsp.
+			
+		This is a client-side redirect. The browser **does receive** the .jsp page it asks for, i.e., the browser did get the
+		Video_12_redirect.jsp page, but something inside that .jsp page causes the browser to make another request to the server,
+		then the browser is redirected to the other .jsp.
+					
+
+					
+VIDEO #13 Notes:
+
+	The Declaration Tag
+	
+		JSP pages are translated into servlets, compiled into classes, and run by the server application.
+		
+		When you add code inside of a scriptlet:
+		
+			<% code here %>
+			
+		...you are essentially adding that code to the doGet() or doPost() method. This is why we have "handles" to variables like 
+		'out' (JspWriter object) and 'response' (HttpServletResponse object) and 'request' (HttpServletRequest object) inside a scriptlet.
+		
+		Logical question you might have: if a scriptlet within a .jsp page (the .jsp is compiled into a class by the server) is 
+		essentially adding code to the doGet() or doPost() method then can we add code to the CLASS that contains these methods?
+			
+		Answer: yes we can. You do it with a declaration tag:
+		
+			<%! code here %>
+			
+	To demonstrate this I created:
+				
+			* Video_13_declarationTag.jsp
+			
+				
+	[ ] Video_13_declarationTag.jsp
+	
+		Add a declaration tag with some code:
+		
+			<%!
+				private String someVariable = "a string inside declaration tag";
+				
+				private String someMethod(){
+					return "returned from method added to .jsp's compiled class";
+				}				
+				
+				private void anotherMethod(JspWriter out){
+					try{
+						out.println("<p>The 'out' variable was passed in when this method was called.</p>");
+					}catch (IOException e){
+						e.printStackTrace();
+					}									
+				}				
+			%>
+			
+			That code is now added to the CLASS that contains the doPost() and doGet() methods. That is,
+			"someVariable" and "someMethod()" and "anotherMethod()" are now members of that class.
+			
+			These new class members, however, don't have access to the same variables that the doGet()
+			and doPost() methods have access to; it is likely that doGet() and doPost() are passed these
+			varialbes "behind the scenes"; But what you can do is pass those same variables to your 
+			method --> as is demonstrated in "anotherMethod(JspWriter out)".
+			
+			
+			Remember,
+			.java files are compiled into .class files by the JVM; so your *servlets* (not scriptlets) that
+			have .java extensions are complied into .class files, machine readable files. Basically your
+			.jsp page is compiled directly into a *servlet* .class file. So that code above, it added
+			java code to the compiled .class file.
+			
+		
+		Use the added .class code from within a *scriptlet*:
+		
+			Remember, *scriptlets* are chunks of code that are compiled into the doPost() and doGet() methods.
+			The doPost() and doGet() methods have access to things like a JspWriter object, an HttpServletRequest
+			object, a HttpServletResponse object, etc. So we can pass our "anotherMethod()" method one of
+			these objects that doPost() and doGet() have access to:
+			
+				<%
+					// use the instance variable
+					out.println("<p>" + someVariable +"</p>");
+				
+					// use the first added method
+					out.println(someMethod());
+					
+					// Pass the JspWriter object to our method for use:
+					anotherMethod(out);					
+				%>			
+			
+				
+			To be honest with you, I don't know why doPost() and doGet() have access to a JspWriter
+			object, the only things passed to the doPost() and doGet() are:
+			
+				(HttpServletRequest request, HttpServletResponse response)
+				
+			so this might lead one to think the JspWriter object is a member of the .class. To test
+			this I altered the code thusly:
+			
+				Changed "anotherMethod()" to get rid of the JspWriter parameter:
+				
+					private void anotherMethod(){
+						try{
+							out.println("<p>anotherMethod was called. We have access to a JspWriter object.</p>");
+						}catch (IOException e){
+							e.printStackTrace();
+						}										
+					}		
+					
+				And changed the call of that method within the scriptlet with no argument:
+				
+					anotherMethod();
+					
+				
+				...but the code wouldn't compile, with this error: "out cannot be resolved".
+				
+				So this leads one to believe "out" (a JspWriter object) is only available within the
+				doPost() and doGet() methods. I don't know why. Probably something simple. Oh well,
+				for now it has to remain magic. Moving on!			
+
+			
+		
+VIDEO #14 Notes:
+
+	Summary of tags thus far introduced.
+	
+	Note: I did not write any code for this tutorial. The summary is written below.
+	
+	Directive tag:		
+	
+		<%@		%>
+		
+			Sends directive to your application server (Tomcat in this case) telling it to do things.
+			
+			Examples:
+			
+				<%@ page import="java.util.*, myPackage.MyClass" %>
+				<%@ include file="someJsp.jsp" %>
+				
+	JSP inclusion tag:	
+	
+		<jsp:include page="includedPage.jsp />
+			
+		According to this answer on StackOverflow: http://stackoverflow.com/questions/9188478/how-to-implement-a-include-jsp-tag
+		
+		To include a page at runtime use: <jsp:include page="includedPage">
+		To include a page at compile time use: <%@ include file="someJsp.jsp" %>
+		
+		
+	Expression tag:		
+	
+		<%=		%>
+	
+			Writes directly to the page.
+		
+		
+	Comment tag: 		
+	
+		<%/*	*/%>
+	
+			Not presented but here it is:
+			
+				<%/* java style multi-line comments now possible */%>
+			
+			
+	Declaration tag:	
+	
+		<%!		%>
+	
+			Adds members (fields, methods) to the class that .jsp gets compiled into.
+		
+		
+	Scriptlet tag:		
+	
+		<%		%>
+	
+			Allows you to run java code inside a .jsp file.
+			Code in here ends up in the doGet() or doPost() method.
+			Whatever code you could put in a method can go in here (classes, local variables, method calls, etc.).
+			
+THE END of JSP_Tutorial_2.

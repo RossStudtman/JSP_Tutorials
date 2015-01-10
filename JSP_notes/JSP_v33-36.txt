@@ -1,0 +1,723 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 33 through 36
+
+Video #33: Connecting to a database
+Video #34: JNDI DataSource
+Video 35 setup: putting data inside the "webshop" database table "users".
+Video #35: Querying Databases
+Video #36: Inserting Data Into Databases
+
+Project Name: JSP_Tutorial_6 --> when creating this project be sure to include a web.xml
+
+
+VIDEO #33 Notes:
+
+	I apologize for the length of these Video 33 notes. 
+	I was brand new to MySQL & MySQL Workbench so there are notes here to help a future-me
+	looking back or maybe someone like me using these notes to help them along. Additionally,
+	I came in with scant information regarding how to set up databases in general. 
+	Hence much of this is new to me and this accounts for the length of this video's notes.
+
+	Connecting to a Database: JDBC is Java's way of connecting to databases.
+	It is not JSP specific.
+	
+	Download & Install:
+	[ ] MySQL
+	
+		Tutorial for installing and running databases:
+			https://www.youtube.com/watch?v=-cHS4HoEFV8
+			
+		Went here (MySql Downlad page):
+		http://dev.mysql.com/downloads/windows/installer/
+		
+		Downloaded the Windows mysql-installer-web-community-5.6.19.0.msi --> ran the installer:
+		
+		Chose to install the "full" version that includes, among other things:
+			
+		[ ] MySQL Workbench
+		[ ] Driver that is appropriate for you database --> Connector J 5.1.30 which installation put
+			in Program Files (x86)/MySQL/Connector J 5.1.30
+			
+		--> inside this folder is the mysql-connector-java-5.1.30-bin.jar (932 KB)
+		--> Inside this folder are three other folders: docs, src, and src.zip. (they total about 7 MB)
+		
+			I don't know what those are for but they look important and I wonder if I simply copy and
+			paste the .jar file into my Eclipse project...won't it need some of that other 7 MBs of 
+			information	in the other folders and files? And if not, why does the "Connector/J" include
+			all that stuffif I don't need it for my project to be connected to a MySQL database?
+			
+			Some of this stuff I simply have to take on faith and try it, I guess.
+				
+		--> So I followed John's tutorial on including JAR files into my project: 
+			JSP_Tutorial_Three: Video #16.
+		
+		--> I also ran across this tutorial from mysql.com about installing Connector/J:
+				
+			http://dev.mysql.com/doc/connector-j/en/connector-j-installing.html
+			
+			Difference between binary and source installations: 
+					
+			http://stackoverflow.com/questions/5280906/difference-between-binary-release-and-source-release
+				
+				This source says: "If you are developing servlets or JSPs, and your application server is 
+				J2EE-compliant, you can put the driver's .jar file in the WEB-INF/lib subdirectory of your 
+				webapp, as this is a standard location for third party class libraries in J2EE web 
+				applications."
+				
+					Exactly where John had recommended to install. Good.
+							
+		
+	[ ] Create a MySQL Database
+	
+		You can do this by using the MySQL Workbench or by using the command prompt.
+		
+		The command prompt was easier for me to use so that's what I did.
+		
+		Some MySQL Workbench tutorials:		 
+			https://www.youtube.com/watch?v=X_umYKqKaF0&list=PLWx5a9Tn2EvH0q2WXpUBqptxi5640qk9O	
+			http://dev.mysql.com/doc/workbench/en/wb-getting-started-tutorial-creating-a-model.html		
+			
+				
+	[ ] Build the database that John already has built:
+		
+	
+						
+	AND I CAN CONFIRM, that having written the tutorial notes for JSP_Tutorial_8 that
+	using the command prompt is far simpler by being more direct and plain to understand. 
+	For instance, this creates a database and a table and a user: 
+	(copy and pasted from JSP_Tutorial_8 notes):
+
+		Open command prompt.
+		Enter:	"mysql -u root -p".
+		Enter:	the password				--> access
+		Enter: 	"CREATE DATABASE vid_52;"	--> Query Ok, 1 row affected
+		Enter:	"use vid_52;"				--> Database changed
+		Enter: 	"create table users
+				(id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, email VARCHAR(25), 
+				password VARCHAR(25));"
+												
+				--> Query OK, 0 rows affected.
+		Enter: 	"insert into users (email, password) values ('a@a.com', 'abC123');" 
+		
+				--> Query OK, 1 row affected.
+		Enter: 	"insert into users (email, password) values ('b@b.com', 'bbB123');"   
+		
+		Enter: 	"select * from users;" 		
+		
+				--> I can see the two entries I made into the database. 2 Rows in set.
+		
+		
+		[ ] Create user and password for that database:
+		
+			Enter: 	"create user 'vid'@'localhost' identified by '52';"			
+				--> Query OK, 0 rows affected.
+				
+			Enter: 	"grant all privileges on vid_52.* to 'vid'@'localhost';"
+				--> Query ok, 0 rows affected.
+				
+			Enter:	"flush privileges;"		
+				--> Query ok, 0 rows affected.
+			
+			Now test the new user, try to log in as new user:
+			
+			Enter: 	"exit"
+			Enter: 	"mysql -u vid -p"
+			Enter:	"52"	
+				--> and user "vid" is granted access to vid_52 database.
+			
+			Enter: 	"show databases;" 		--> user can see vid_52
+			Enter:	"use vid_52;"			--> Database changed
+			Enter:	"show tables;"			--> shows the users table
+			Enter: 	" select * from users;"	--> see the 2 records that are in there.
+		
+			
+	[ ] Get Eclipse to recognize the MySQL database
+	
+		I thought I needed to get Eclipse to recognize the MySQL server and 
+		database but I'm not certain you need to. Those notes on how to	do 
+		this are included as Supplemental Video #33 notes below.
+	
+		John indicates that the necessary mysql .jar ("Connector/J") is often 
+		already included in web applications by Eclipse. It is found at:
+		
+		JSP_Tutorial_6 / Java Resources/ Libraries / mysql-connector-java-5.1.30-bin.jar
+		 
+		...or maybe that's the one I pasted in, if so the one that was included when
+		Eclipse made the project would be here:
+			
+		JSP_Tutorial_6/Java Resources/Libraries/Web App Libraries/mysql-connector-java-5.1.30-bin.jar
+			 
+		This .jar file can also be found where you installed MySQL. For me it is at:
+		
+			C:/Program Files (x86)/MySQL/Connector J 5.1.30/mysql-connector-java-5.1.30-bin.jar
+			
+		This .jar file should be added to Tomcat:
+		
+			Copy and past the Connector/J .jar in the Tomcat lib:
+		
+				Program Files / Apache Software Foundation / Tomcat 7.0 / lib <-- goes in there.			
+					
+										
+					
+					
+	I created the following to demonstrate these concepts:
+			
+				* demo -- a package
+				* Video_33_controller.java -- a servlet
+				
+	[ ] Video_33_Controller:
+		
+		Load the MySQL driver. 
+		Calling the forName() method loads the class given as an argument:			
+			
+				try {
+					Class.forName("com.mysql.jdbc.Driver");		
+					
+					*** The Driver class located in com.mysql.jdbc package,
+					*** with the .jar noted above.
+					
+				} catch (ClassNotFoundException e) {
+					
+					// Could not find the Driver file
+					out.println("Can't load database driver");
+					e.printStackTrace();
+				}				
+			
+		
+		Create a Connection object & make a connection:
+		
+				Connection connection = null; 		
+				
+					*** import the java.sql.Connection; not the com.mysql.jdbc.Connection
+				
+				try {
+					connection = DriverManager.getConnection
+						("jdbc:mysql://localhost:3306/webshop", "webapp", "hello");
+						
+				} catch (SQLException e) {
+					
+					// Cannot connect to database			
+					out.println("Can't connect to database"); 		
+					e.printStackTrace();
+				}
+		
+		Do something while database connection is open:
+		
+				PrintWriter out = response.getWriter();
+				out.println("<h1>Connection to DB Successful!</h1>");
+				
+		
+		Close the connection:
+		
+				try {
+					if(connection !=null){
+						conn.close();
+					}
+					
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}			
+			
+					
+	Next tutorial: a better method for connecting to databases.					
+					
+					
+	Supplemental Video #33 notes:				
+				
+		I was initially confused about what I needed to do to get Eclipse to "see"
+		the MySQL server. Then I discovered I didn't need to do this. The following
+		research proved informative:
+		
+		(Source: http://www.eclipse.org/forums/index.php/t/74927/)
+			
+		Eclipse's database connections are located:
+				
+			Window / Preferences / Data Management / Connectivity 
+			/ Database Connectivity & Driver Definitions
+					
+		Driver Definitions: Add:
+		
+			Name/Type tab: Available driver templates ...MySQL JDBC Driver 5.1
+
+				Connector/J version 5.1 is compatible with MySQL Server version 5.6 
+				
+				(Source: http://dev.mysql.com/doc/connector-j/en/connector-j-versions.html)
+														
+			JAR List tab: 
+			
+			Properties tab:
+			
+				Connection URL: jdbc:mysql://yourHost:3306/aDatabaseWhichExists
+				Database Name: aDatabaseWhichExists
+				Driver Class: com.mysql.jdbc.Driver
+				Password: TheCorrectPassword
+				User ID: UserNameWhichExistsInDatabase
+									
+				
+VIDEO #34 Notes:
+
+	Setting Up A JNDI Data Source
+	
+	This technique for connecting to a database supports connection pooling.
+	
+		I created the following for this tutorial:
+		
+			* Video_34_DataSource.java -- a servlet (we'll be using the init() method)
+			
+	
+	John points us to the following resource since we are going to need to copy some values from it:
+	
+		Apache Tomcat help page: JNDI Datasource HOW-TO 
+		(Source: http://tomcat.apache.org/tomcat-7.0-doc/jndi-datasource-examples-howto.html#MySQL_DBCP_Example)
+	
+			
+	We need to have a database up and running on MySQL.
+	We need to have a user that has access to the DB and has a password assigned.
+	
+		The cited source above says 
+		
+			"Your MySQL user *must* have a password assigned. 
+			The driver will fail if you try to connect with an empty password."
+		
+	We need to edit 2 files:
+		
+	[ ] Context.xml in Tomcat
+	
+		In Eclipse's Project Explorer look for the "Servers" project, this project was built 
+		automatically for you. Find the context.xml --> open in text editor.
+		
+			Copy the <context> information from the internet resource cited above --> paste into context.xml
+		
+			Make the following changes to what was pasted in to reflect your database information:
+			
+			  <Resource name="jdbc/webshop" 
+						auth="Container" type="javax.sql.DataSource"
+						maxActive="100" maxIdle="30" maxWait="10000"
+						username="webapp" password="hello" 
+						driverClassName="com.mysql.jdbc.Driver"
+						url="jdbc:mysql://localhost:3306/webshop"/>				
+				
+	[ ] In our project's WebContent/WEB-INF/web.xml:
+	
+		Copy the <resource-ref> info from 
+		
+		http://tomcat.apache.org/tomcat-7.0-doc/jndi-datasource-examples-howto.html#MySQL_DBCP_Example
+		
+		...and past into web.xml.
+		
+		Make the following changes to what was pasted in to reflect your database information:				
+				
+		  <resource-ref>
+			<description>DB Connection</description>
+			<res-ref-name>jdbc/webshop</res-ref-name>
+			<res-type>javax.sql.DataSource</res-type>
+			<res-auth>Container</res-auth>
+		  </resource-ref>
+				
+				
+	[ ] Create the "webapp" user with password of "hello":
+					
+				
+		Command prompt approach:
+		
+		Tutorial for adding new user: 		
+		https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+				
+		Log into the MySQL server: mysql -u root -p
+		Enter password. 
+		Command prompt changes to "mysql>".
+		
+		Create the "webapp" user with a password of "hello", who has access to the webshop database:
+				
+			CREATE USER 'webapp'@'localhost' IDENTIFIED BY 'hello';
+			GRANT ALL PRIVILEGES ON webshop.* TO 'webapp'@'localhost';
+			FLUSH PRIVILEGES;
+
+			
+		How to change back to "root" user:
+		
+			If already at mysql prompt: "mysql>" then type "exit" to exit.
+			Now type: mysql -u root -p
+			Get prompted for password --> enter password.
+			Now you've switched to root user.			
+			
+		How to switch to different user:
+			
+			If already at mysql prompt: "mysql>" then type "exit" to exit.		
+			Now type: mysql -u webapp -p
+			Get prompted for password --> enter "hello" password.
+			Now you've switched to "webapp" user.
+			
+			Optionally, you can put mysql login info all on one line, 
+			only detail here is no space between "-p" and the password:
+			
+				mysql -u webapp -phello				
+		
+						
+				
+	[ ] Video_34_DataSource:
+	
+		In init()
+			
+			Use an InitialContext object to lookup "java:comp/env" to obtain a Context 
+			object.
+			
+			Use that Context object to lookup "jdbc/yourDatabaseName" to obtain a 
+			DataSource object.
+		
+		In doGet()
+		
+			Use that DataSource object to make a Connection object that will connect 
+			you to the database
+
+		
+	Run the code.
+	
+		Celebrate that it works!
+		
+			
+VIDEO #35 Setup:					
+					
+	[ ] Set up some data in the "webshop" database.
+	
+	Open command prompt.
+		
+	Enter: mysql -u webapp -p
+	Enter: "hello" 	// the password
+	Enter: "use webshop" to change to that database.
+	Enter: "show tables;" to show the tables. One of the talbes shown is "users"
+	Enter: "select * from users;" to reveal the table is empty.
+
+	Add data:
+			
+	Enter: "desc users;" to remind me of the table's structure.			
+	Enter: "insert into users(email, password) values("a@a.com", "abC123"); 
+	
+		--> 1 row affected.
+		
+	Enter: "insert into users(email, password) values ("b@b.com", "ddD123"); 
+	
+		--> 1 row affected.
+			
+	Note: Remember the Video_35_UserBean validates the email and password; 
+	I have it set to look for a password containing at least 5 characters, 
+	that must include 1 uppercase, 1 lowercase, and 1 digit.
+			
+	Okay, good, now there is data in the "users" table of the "webshop" database. 
+
+VIDEO #35 Notes:
+
+	Querying Databases
+	
+	Web user logs in by supplying their username and password.
+	
+		I created the following for this tutorial:
+		
+			* index.jsp -- website home page with hyperlinks 
+			* Video_35_login.jsp -- a login form
+			* Video_35_css.css -- css for login form
+			* Video_35_innerSanctum.jsp -- where succesfully logged in users go.
+			* Video_35_errorPage.jsp -- shouldn't see this at all
+			* Video_35_UserBean.java -- a JavaBean with validation
+			* Video_35_Controller.java -- a servlet
+			* Url_Key_Map.java -- "director" key map for URL destinations.
+			
+	[ ] Url_Key_Map
+	
+		public final class Url_Key_Map {
+
+			/** A URL key map. */
+			public static final Map<String, String> map = 
+				new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+			
+			// statically load map
+			static{
+				
+				// INDEX
+				map.put("index", "/index.jsp");		
+				
+				/*
+				 * Directed to doGet
+				 */
+				
+				// LOGIN - from index.jsp; used by doGet to take user to Vid_35_login.jsp.
+				// Also directed here from Vid_36_accountCreated.jsp
+				map.put("login", "/Video_35_login.jsp");
+				
+				// NEW ACCOUNT FORM - from index.jsp; used by doGet to take user to Vid_36_NewAccount.jsp
+				map.put("new_account", "/Video_36_NewAccount.jsp");
+				
+				
+				
+				/*
+				 * Directed to doPost
+				 */
+				
+				// Video_35_login.jsp submits this; used by doPost
+				map.put("doLogin", "doLogin");
+				
+				// Vid_36_NewAccount.jsp submits this; used by doPost
+				map.put("new_account_form", "new_account_form");
+				
+				
+				
+				/*
+				 * Directed from Vid_35_Controller
+				 */
+				
+				// INNER SANCTUM
+				map.put("access_granted", "/Video_35_innerSanctum.jsp");
+				
+				// NEW ACCOUNT CREATED - from Vid_35_Controller - a success page.
+				map.put("account_created", "/Video_36_accountCreated.jsp");
+				
+				// ERROR PAGE - doPost sends here if data from Vid_36_NewAccount could not be 
+				// used to make entry into database.
+				map.put("error", "/Video_35_errorPage.jsp");		
+			}
+		}
+
+					
+	[ ] index.jsp
+	
+		Links to:
+		
+			Video_35_login.jsp			--> goes to doGet()
+			Video_36_NewAccount.jsp		--> goes to doGet()			
+			
+			Thought:
+			
+				If user has successfully logged in, set a cookie. So when user
+				visits the index.jsp page a link is shown that "immediately" takes
+				them to the the "inner sanctum" page - but their cookie's email and
+				password would be checked again? 
+				
+				Or, basically have a link going to "inner sanctum" and if user
+				has a cookie with appropriate data, let them through; if not
+				route them to login page.
+			
+			
+	[ ] Video_35_login.jsp
+	
+		[ ] Create form
+		
+			method set to POST
+			action set to:
+			
+				action="<%= response.encodeURL(request.getContextPath() 
+					+ "/Video_35_Controller?director=doLogin") %>"
+				
+			id="loginForm" --> for css
+			
+			hidden <input> with name set to "director" and value set to "doLogin"
+			
+			<input> for email and password:
+			
+				set their values to attributes set on the HttpServletRequest object, for example:
+				
+					value="<%= request.getAttribute("email") %>"
+					
+			a place for the error message to go:
+			
+				<p class="login-error"><%= request.getAttribute("errorMessage") %></p>
+			
+				
+	[ ] Video_35_css.css		
+		css to prettify the form.
+		css for error message.
+				
+	[ ] Video_35_innerSanctum.jsp --> simple result for successfully loggin in.		
+	[ ] Video_35_errorPage.jsp --> simple error page; link back to home page (index.jsp)		
+	[ ] Video_35_UserBean.java		
+		Basically a copy and paste of Video_24_UserBean.java		
+	
+	[X] Video_35_Controller.java
+	
+		[ ] Follow Video 34 for setting up JNDI source
+		
+			[ ] Changes to Tomcat's Context.xml were already done in Video 34.
+			[ ] Changes to JSP_Tutorial_6's web.xml were already done in Video 34.
+			
+		[ ] Create a private variable for the DataSource object:
+		
+				private DataSource dataSource; 		// import javax.sql.DataSource
+				
+		[ ] Create a private variable for the Connection object:
+		
+				private Connection connection = null;
+
+		[ ] Do the following in init():				
+				
+			try {
+				InitialContext iContext = new InitialContext();
+				
+				// Make Context object
+				Context context = (Context)iContext.lookup("java:comp/env");
+				
+				// Create DataSource object by "looking up" datasource object using Context object
+				dataSource = (DataSource)context.lookup("jdbc/webshop");							
+			} catch (NamingException e) {
+				throw new ServletException("failure to initialize context");
+			}
+					
+		[ ] in doGet():
+		
+			if "director" key value equals "login" --> set the login form's defaults.
+			
+			Obtain destination URL from "whereDoIGo()"						
+					
+		[ ] in doPost():
+		
+			If "director" equals "doLogin" then perform validation for loggin in. Have
+			that validation return a URL for directing user either back to form or
+			to the "inner sanctum."
+			
+		[ ] in whereDoIGo():
+		
+			Use the "director" key on the Url_Key_Map to obtain the URL value.
+			
+		[ ] in doLogin():
+		
+			Create a UserBean from parameters.
+			Call UserBean's isValid() method.
+			
+				If valid, grant access to "inner sanctum."
+				If not, send back to form.
+				
+					Set request attributes for form.
+			
+			
+		[ ] in verifyAccountInfo():
+		
+			Create a SQL string.
+			Call openDatabaseConnection().
+			Create a prepared statement:
+
+				PreparedStatement p = connection.preparedStatement(SQL string);
+				
+			Get ResultSet object back from executing the PreparedStatement.
+			Get "count" (an int) back from ResultSet object.
+			Call closeDatabaseConnection().
+			If "count" greater than zero return true (the email & password combo exists in database),
+			else return false.
+			
+		[ ] in openDatabaseConnection():
+		
+			Make a connection to the database: Connection connection = DataSource.getConnection();
+				Connection & DataSource objects were created as private variables in the 
+				Video_35_Controller	servlet. Hence, this becomes: connection = dataSource.getConnection();
+				
+		[ ] in closeDatabaseConnection():
+		
+			Close the connection: connection.close();			
+			
+		
+VIDEO #36 Notes:
+
+	Inserting Data Into Databases
+	
+		I created the following for this tutorial:
+		
+			* Video_36_NewAccount.jsp 		--> a form for creating a new account.
+			* Video_36_css.css 				--> css for form
+			* Video_36_accountCreated.jsp 	--> where to go after successfully creating 
+												a new account
+			
+			
+		I modified the following in trivial ways:
+		
+			* DirectorEnums.java 	--> added "NEW_ACCOUNT" and "NEW_ACCOUNT_FORM"
+			* index.jsp 			--> added new account hyperlink
+			* Video_35_Controller 	--> added the new enums to switch statement, 
+										added form defaults in doGet().
+			
+	[ ] Video_36_NewAccount.jsp
+		
+		[ ] Create form
+		
+			[ ] method set to POST
+			[ ] action set to:
+			
+				action="<%= response.encodeURL(request.getContextPath() 
+					+ "/Video_35_Controller?director=new_account_form") %>"
+				
+			[ ] id="newAccountForm" --> for css
+			[ ] hidden <input> with name set to "director" and value set to "new_account" 
+				--> WE DONT NEED THIS, took this out! See form's action.
+				
+			[ ] <input> for email and password
+			
+				[ ] set their values to attributes set on the HttpServletRequest object, for example:
+				
+					value="<%= request.getAttribute("email") %>"
+					
+			[ ] a place for the error message to go:
+			
+				<p class="login-error"><%= request.getAttribute("errorMessage") %></p>		
+				
+	[X] Video_35_Controller.java
+	
+		[ ] in newAccount():
+		
+			Call validateFormData(), if form contents in valid form then:
+				Call userInDatabase(), if user email not in database then:
+					Check if two passwords are equal, if not equal then:
+						Call createNewAccount(), if database row was updated this returns true, then:
+							Create an HttpSession object and add a UserBean to it, then:
+								return "whereToGo" string = .jsp page for succesfull account creation.
+								
+			If form data in incorrect format, send them back to new account form.					
+				If user is in database, send them to login form.
+					If passwords are equal, send them back to new account form.
+						If database was not updated send them to error page.
+				
+		[ ] in emailInDatabase():
+		
+			Check if user's email is already in database:
+				
+			Create a SQL string.
+			Call openDatabaseConnection().
+			Create a prepared statement.
+			Get ResultSet object back from executing the PreparedStatement.
+			Get "count" (an int) back from ResultSet object.
+			Call closeDatabaseConnection().
+			If "count" greater than zero return true (the email exists in database), else
+			return false.		
+			
+			
+		[ ] in createNewAccount():
+		
+			Create a SQL string.
+			OpenDatabaseConnection().
+			Create PreparedStatement.
+			Obtain result int: 0 if no rows were updated in database, or 1 if one row was updated.
+			If result is 1, return true.
+			
+				
+	Additional notes for video 36:					
+					
+	[ ] Check to see if data really did get into database
+	
+		[ ] Open command prompt.
+		
+			I put in the following at the prompt:
+			
+				mysql -u webapp -p
+				
+			I was then prompted for a password and entered "hello".
+			
+			I was granted access.
+			
+			I typed in "use webshop" to change to that database.
+			I typed in "show tables;" to show the tables --> one table: "users"
+			I typed in "select * from users;" --> the email and password I entered in the
+			form appear in the results.
+			
+	EXCELLENT! 
+	
+	
+	

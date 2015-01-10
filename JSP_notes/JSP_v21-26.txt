@@ -1,0 +1,517 @@
+Author: Ross Studtman
+
+Tutorial: John Purcell's "Servlets and JSPs: Creating Web Applications With Java"
+John's website: CaveOfProgramming.com
+Notes for videos 21 through 26
+
+Overall Summary of JSP_Tutorial_4 notes.
+Video 21: Handling Form Data
+Video 22: POST data
+Video 23: JavaBeans to store data from forms
+Video 24: Adding validation to a JavaBean
+Video 25: Self-Validating form
+Video 26: Validation through controller servlet (MVC validation)
+
+
+OVERALL SUMMARY
+
+	May not be wise to try to understand this prior to going through tutorials. Then again, maybe wise? You decide.
+
+	The overall user flow: user clicks on link in index.jsp --> controller doGet --> login form --> doPost --> A) back to form, or B) success
+
+	[ ] index.jsp --> home page: hyperlinks to Controller.java's doGet(): 
+		
+			<a href="/ProjectName/Controller?director=login>Login</a>
+			<a href="/ProjectName/Controller?director=about>About</a>
+			<a href="/ProjectName/Controller?director=to>Terms of Service</a>
+			etc.
+			
+	[ ] Controller's doGet() --> obtain the value for key "director"
+	
+			If sending user to login.jsp --> set attributes on HttpServletRequest object:
+			(these are for the form on the login page)
+			
+				request.setAttribute("email", "email");				
+				request.setAttribute("password", "password");				
+				request.setAttribute("errorMessage", ""); 
+			
+				
+			One style of directing traffic: if-else
+			
+				String director = request.getParameter("director");
+				String whereToGo;
+				
+				if(director == null){ 
+					whereToGo = "index.jsp";
+				}else{
+					if(director.equals("about")){
+						whereToGo = "AboutPage.jsp";
+					}else if(director.equals("login")){
+						whereToGo = "login.jsp";
+					}			
+				}
+				
+				--> send user to whereToGo.
+				
+			Another style of directing traffic: Maps
+			
+				String whereToGo = request.getParameter("director");
+				
+				// A Map, probably would pre-define it somewhere else
+				Map<String, String> directorMap = new HashMap<>();
+				
+				// put some values in it for now
+				directorMap.put("vid_52_home", "/Video_52_home.jsp");
+				directorMap.put("vid_53_home", "/Video_53_home.jsp");
+				
+				// Check for null or if "director" value not in directorMap
+				if(whereToGo == null || !directorMap.containsKey(whereToGo)){
+					
+					whereToGo = "/Video_52_home.jsp";
+				
+				}else{
+				
+					whereToGo = directorMap.get(whereToGo);
+				}
+				
+				request.getRequestDispatcher(whereToGo).forward(request, response);	
+				
+				
+				...you can decide on the benefits of using a TreeMap vs a HashMap. For me, at the moment, it comes down to
+				speed vs the ability to use case-insensitive URL parameters. And since all of the URL parameters are of
+				my choosing, I'd say the Hashmap is best for my current usage.
+				
+	[ ] Login.jsp --> A form for logging in.
+	
+			User was directed to this form by Controller's doGet(). 
+			doGet() set attributes on the HttpServletRequest object ("request" is the 'incoming' variable).
+			Use those attributes to set values in <input> elements on this form:
+			
+				<input type="text" name="email" value="<%= request.getAttribute("email") %>" />	
+			
+			Form has hidden input field, name is set to "director", when form submitted to doPost we look for this key and if 
+			it has a value of "doLogin" we know it came from this form. 
+			
+				<input type="hidden" name="director" value="doLogin" />		
+				
+			Form handles error messages from "request" object: <%= request.getAttribute("attributeSetInDoGet_or_doPost")
+				
+	
+	[ ] Controller's doPost() --> validate form: let user into the promised land or send them back to the form.
+	
+			The form's action was set to POST so the form's key:value pairs ended up here. 
+			
+			Both doGet() and doPost() send their "director" values to the "whereDoIGo()" helper method that decides
+			where the user or data should be directed.
+				
+			The form's hidden <input> has the name "director" with the value "doLogin". A validation method is invoked to
+			validate the form's data. Then do one of two things:
+			
+					A) 	If form's data passes validation --> return a URL string that allows user into the inner sanctum.
+						(URL string returned to "whereDoIGo()"; whereDoIGo() then returns that URL string to the doPost() method.)
+						
+					B)	Form data fails validation --> return a URL string that takes user back to the login form.
+						(URL string for form returned to "whereDoIGo()"; whereDoIGo() returns that URL string to the doPost()
+						 method.)
+						 
+				Form validation:
+				
+					Obtain form's data from parameters, for example:
+					
+						 String email = request.getParameter("email");
+						 String password = request.getParameter("password");
+						 
+					Create a UserBean from this data, for example:
+					
+						beans.UserBean userBean = new UserBean(email, password);
+						
+					Call the UserBean's validation() method in a conditional:
+					
+						if(userBean.validate()){
+						
+							whereToGo = URL of successful login;
+							
+						}else{
+						
+							Set HttpServletRequest object's attributes:
+							
+								request.setAttribute("email", email);
+						 		request.setAttribute("password", password);
+						 		request.setAttribute("errorMessage", userBean.getErrorMessage());
+						 		
+						 		whereToGo = URL of form;
+						 		
+						}
+						
+						return whereToGo;
+						
+			
+			doPost() sends the user to the designated URL like so:
+			
+				request.getRequestDispatcher(goToThisPage).forward(request, response);	
+				
+				If form validation has failed the "request" object now has attributes set on it
+				and the form will use these attributes to set its <input> values to them. 		
+				
+
+
+VIDEO #21 Notes:
+
+	Handling Form Data Using JSPs and Servlets
+
+		I created the following to demonstrate this:
+		
+			* controller -- a package
+			* Video_21_Controller.java -- a servlet
+			* Video_21_formOne.jsp
+			
+		[ ] Video_21_formOne.jsp.
+		
+			Create form.
+		
+			Form's action: where the form will be submitted to.
+			Form's method: how the form is submitted to the 'action'.
+			
+				Set 'action' to go to our controller at this relative address: JSP_Tutorial_4/Video_21_Controller
+				Set 'method' to "get"
+				
+			Type into form --> submit form --> look at URL --> A) it went to the controller, B) URL parameter is name given to text field.
+			
+		[ ] Video_21_Controller.java:
+		
+			Respond with something simple.
+		
+			URL parameter key should match what was written in Video_21_formOne.jsp's as the text field's name.
+			
+		
+		See added files for notes.			
+			
+	Rejoice!
+	
+	
+VIDEO #22 Notes:
+
+	[ ] Video_21_formOne.jsp
+	
+		Add another form. Method = POST.
+		
+		Method = "GET":
+		
+			This method submits data appended as URL parameters.
+			GETs are less useful for forms. 
+			GETs are useful for hyperlink URLs with parameter ID's.
+			
+		Method = "POST":
+		
+			This method submits parameters inside the TCP/IP header.
+			
+			
+		When this form is submitted, notice the URL address has no parameters.
+			
+		
+VIDEO #23 Notes:
+
+	Using Beans to store data from forms.
+	
+	You cannot use Beans in servlets, but they can be very useful for transferring data between JSP pages.
+	
+	What we're about to see breaks MVC but, as John says, if you do a lot of web programming you are definitely going to see this.
+	
+	Goal: Have one JSP submit its form to another JSP that handles the submission.
+	
+		I created the following to demonstrate this:
+		
+			* beans -- a package --> put your beans in a package.
+			* Video_23_UserBean.java -- in beans package --> a simple bean.
+			* Video_23_formHandler.jsp --> direct a form's action to this URL
+			
+		
+	[ ] Video_21_formOne.jsp:
+	
+		Add new form.
+		
+			Form's action goes to Video_23_formHandler.jsp.
+								
+			Important: 			
+			
+				We are sending this form to another .jsp.
+				That .jsp is using property="*" to find URL parameter that match our Video_23_UserBean's property names.
+				Because of that, the names given to this form's <input> need to match properties in our Bean.			
+			
+	[ ] Video_23_formHandler.jsp:
+			
+			Create <jsp:useBean>
+			Use jsp:setProperty method to set properties on the bean.
+			
+				Couple of notes here about jsp:setProperty:
+				
+					Hard code userName property:
+						<jsp:setProperty name="vid23" property="userName" value="String" />
+						
+							...you have to specify the property you want set.
+							...you have to specify the value you want it set to.
+						
+					Use URL parameter to set userName property:
+						<jsp:setProperty name="vid23" property="userName" param="key_from_URL" />
+						
+							...you have to specify the property you want to set.
+							...you have to specifically look for a parameter key in the URL.
+						
+					Use any URL parameters that match the userName property in our Bean:
+						<jsp:setProperty name="vid23" property="userName" />
+						
+							...you have to specify the property you want set.
+							...you do NOT have to specifically look for a parameter key in the URL.
+						
+					Use any URL parameters that match any of the properties in our Bean:
+						<jsp:setProperty name="vid23" property="*" />
+						
+							...you do NOT have to specify the property to set.
+							...you do NOT have to specifically look for a parameter key in the URL.
+							
+							
+					(source for above notes: http://docs.oracle.com/javaee/1.3/tutorial/doc/JSPIntro11.html)
+						
+	Summary:
+		You can use another .jsp as the submit action of a form.
+		You can use a jsp:useBean tag in the .jsp handling the form and then set the properties of a Bean.
+		The sending .jsp does NOT need a jsp:useBean, it's just sending data; the receiving .jsp does need the jsp:useBean
+		The bean will then be available to other areas of your application depending on the scope you set in the jsp:useBean.
+						
+						
+				
+VIDEO #24 Notes:
+
+	Adding Validation to our JavaBeans.
+	
+		I created the following to demonstrate this:
+		
+			* test -- a package
+			* TestBeanValidation.java -- in test package --> for testing if Bean is validating correctly.
+			* Video_24_UserBean.java -- a Bean with validation features.
+			
+	[ ] Video_24_UserBean.java
+	
+		Added validation to this bean.
+		
+		The following goes into some detail about how I set up validation. 			
+				
+		Password: using regex --> "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{5,}$";
+		
+			Sample explanation of (?=.*[0-9])
+				"(?=" 	--> means non-capturing "look ahead" and will check the entire string for a match before moving on
+				".*"  	--> means "zero or more of any character"
+				"[0-9]"	--> means "a digit in the range of zero through nine".
+				
+				As a sentence: Look anywhere in this string for zero or more characters followed by a digit. If that is found it moves on
+				trying to match (?=.*[a-z]) and so on.
+				
+				"(?   )" --> is the "positive lookahead" and it will search the string without 'consuming' any of the matches, only 
+				returning if the match was found or not; so if the match was found it moves on to the next part of the regex
+				*from where the regex last left off* -- and the place we 'last left off'? The beginning of the string denoted by "^".
+				So, each of these lookaheads begins at the start of the string and when they're all done the only part of the regex 
+				left to do is ".{5,}" which means "any character" "at least 5 times".
+				
+				"^" --> matching must begin at start of string.
+				"$" --> matching must terminate at end of string.
+				
+				(?=\\S+$) --> "Lookahead for any non-white space character occurring 1 or more times, and look all the way to the end of the string."
+								ie, a white space character would cause this to fail.
+				
+				Sources:
+					http://www.regular-expressions.info/lookaround.html
+					http://stackoverflow.com/questions/3802192/regexp-java-for-password-validation
+					
+		
+		Email regex: --> "^[\\w-]+[\\.\\w-]*@[\\w-]+\\.[\\.\\w+]*\\w{2,6}$";
+		
+			"From the begging of the string look for a word-character or hyphen one-or-more times, then a dot or a word-character or hyphen
+			zero-or-more times, then the @ symbol, then a word-character or hyphen one-or-more times, then a dot, then a dot followed by 
+			one-or-more word-characters zero-or-more times,	then look for a word-character that is at least 2 characters long but not longer 
+			than 6, then the end of the string should arrive."
+			
+				Should work: ross.studtman@fancyEmail.com, ross@fancyEmail.com, ross@fancy.Email.bizzz
+				
+				
+	[ ] TestBeanValidation.java:
+	
+			// Make a bean for testing
+			Video_24_UserBean userBean = new Video_24_UserBean();
+			
+			userBean.setEmail("ross.studtman@y.com");
+			userBean.setPassword("aA123");
+			
+			// Test validation
+			if(userBean.validate()){
+				System.out.println("Bean is valid.");
+			}else{
+				System.out.println(userBean.getErrorMessage());
+			}		
+						
+						
+						
+VIDEO #25 Notes:
+
+	Creating a Self-Validating Form
+	
+		I created the following to demonstrate this:
+		
+			* Video_25_selfValidatingForm.jsp
+			
+	[ ] Video_24_UserBean.java
+	
+		If you don't change Video_24_UserBean's instance fields (the properties of the Bean) to have default values then when you run the 
+		self validating form 'null' values will be inserted into the text fields of the form. 
+		
+			Now, you might be thinking: how does the form grab an instance of the Video_24_UserBean to even know to put null values into
+			the text boxes? Good question. The answer is that when you put a <jsp:useBean> in the .jsp, if there is not already a bean with
+			the id you have given it, the <jsp:useBean> tag creates an instance of the Video_24_UserBean class.
+			
+				In the words of Oracle: (http://docs.oracle.com/javaee/5/tutorial/doc/bnair.html):
+				
+				 If no such bean exists, the statement creates the bean and stores it as an attribute of the scope object (see Using Scope Objects). 
+				 The value of the id attribute determines the name of the bean in the scope and the identifier used to reference the bean in 
+				 EL expressions, other JSP elements, and scripting expressions (see Chapter 9, Scripting in JSP Pages).
+				 
+				 	...don't worry, I don't know what "EL expressions" are at the moment, either.
+				 	
+		
+		Changed the Video_24_UserBean properties to have default values that will show up in the self validating form.
+		
+			Note: by giving the properties default values the validation() method now checks if the password & email properties match their
+			default values, for if they do then these are still the same values that are displayed in the form. 
+			
+		Definitely check out the notes in Video_25_selfValidation.jsp. In there it is explained why an <input> tag was included in the form
+		with a type of "hidden" (has to do with not running bean validation until the user actually submits the form).
+		
+		If bean validation is successful then forward to Video_21_Controller.java. 
+		
+	[ ] Video_21_Controller.java
+	
+		doPost() method is looking for the parameter key "lookAtMeInURL" and I'll leave that key because it was	used in previous tutorials. 
+		But I've added logic so that we can obtain the parameters of email and password that we are interested in now.
+			
+			
+			
+VIDEO #26 Notes:
+
+	Submitting a Form & Validating the Form --> While Using Strict MVC Architecture
+	
+	The flow: user clicks on link in index.jsp --> controller doGet --> login form --> doPost --> A) back to form, or, B) success
+	
+		I created the following to demonstrate this:
+		
+			* Video_26_Controller.java -- in the controller package.
+			* Video_26_loginForm.jsp -- a simple login form.
+			* index.jsp -- with a link to Video_26_loginForm.jsp 
+			* Video_26_errorPage.jsp -- a place to go in case URL parameter "director" is given bad value.
+			* Url_Key_Map
+			* Video_26_WelcomeToInnerSanctum.jsp --> if user passes login, go here.
+			
+		
+		URL parameter key "director" is used as a key in the following places:
+		
+			index.jsp 		--> the hyperlink that goes to controller's doGet() method.			
+			loginForm.jsp 	--> the hidden <input> that goes to doPost() method.
+				
+					Note: could probably put the "director" key and value directly in the form's action=" ".
+					Thus, probably do not need hidden <input>.
+					
+	[ ] Video_26_loginForm.jsp					
+		
+		Create form.
+		
+			Form's method = POST.
+			Form has hidden input with name="director" and value="dologin"
+			
+				When form is submitted the key:value ("director":"dologin") is attached to HTTP header.
+			
+			Form's <input> values are obtained via the request object:
+			
+				<input type="text" name="email" value="<%= request.getAttribute("email") %>" />	
+				
+				...when form first loads it is the resonsibility of the controller's doGet() to assign
+				default values to the request object.
+			
+			Video_26_Controller's doPost() will processes the form.
+			
+			This form does not need <jsp:useBean> in it.
+			
+			
+	[ ] Video_26_Controller.java
+	
+			doGet():
+			
+				Call whereDoIGo() to search Url_Key_Map for "director" key and URL value.
+				
+				Call assignFormValues() to set attributes on request object.
+				
+					...when controller redirects to login page it tucks the added attributes into the request
+					object. These attributes are then available via the getAttribute inside a <input> element:
+						
+							<input type="text" name="email" value="<%= request.getAttribute("email") %>" />	
+		
+			doPost():
+			
+				Call validateLoginData() to determine if user has granted access or returned to form.
+				
+					
+			whereDoIGo():
+			
+				Used by doGet() to determine which URL value to associate with the "director" key.				
+					
+
+						
+			validateLoginData():	
+
+				Used by doPost() to determine which URL value to use (based on if form data is good).
+
+					Instantiate a UserBean using parameters.
+				
+						String email = request.getParameter("email");
+						String password = request.getParameter("password");
+						
+						// Create a Video_24_UserBean bean
+						beans.Video_24_UserBean userBean = new Video_24_UserBean(email, password);
+						
+					If bean validates: return Url_Key_Map.map.get("access_granted");
+					
+						...access to password protected content.
+						
+					If bean fails: return Url_Key_Map.map.get("login");	
+
+						...set attributes for email, password, and error message on request object.
+
+						...and, back to login form.
+								
+											
+			
+			assignFormValues():
+			
+				Used by doGet() to initialize form <input> values.
+				Also used by validateLoginData() if form data fails validation, this will initialize
+				form data to what the user entered and any error message that need communicating.
+							
+							
+				
+					
+					
+	The following sources helped me understand request.getAttribute and request.getParameter:
+	
+		http://forums.codeguru.com/showthread.php?350657-Difference-between-request-getParameter()-and-request-getAttribute()
+		http://stackoverflow.com/questions/5243754/difference-between-getattribute-and-getparameter
+			
+			Basic difference: 
+			
+				getParameter can only get a string; 
+				
+				getAttribute can get any object.
+									
+
+				
+		An idea: since we are going through the controller before we get to the form, maybe we could make the bean
+		in the controller and pass the bean object to the form as an attribute? 
+					
+
+END JSP_Tutorial_4 NOTES.		
+		
